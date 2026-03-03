@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>📋 Invoice Manager</h1>
+                    <p>Professional Loading Sheets & Invoice Generation</p>
+                </div>
+                <div class="header-right">
+                    <div class="stat-card">
+                        <p class="stat-value" id="totalInvoices">2</p>
+                        <p class="stat-label">Total Invoices</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="app-nav">
+            <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="nav-btn" data-tab="companies">🏢 Companies</button>
+            <button class="nav-btn" data-tab="drivers">👨 Drivers</button>
+            <button class="nav-btn" data-tab="invoices">📄 Invoices</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-box stat-blue">
+                        <p class="stat-number" id="statCompanies">2</p>
+                        <p class="stat-title">Total Companies</p>
+                    </div>
+                    <div class="stat-box stat-green">
+                        <p class="stat-number" id="statDrivers">3</p>
+                        <p class="stat-title">Total Drivers</p>
+                    </div>
+                    <div class="stat-box stat-purple">
+                        <p class="stat-number" id="statInvoicesCount">2</p>
+                        <p class="stat-title">Total Invoices</p>
+                    </div>
+                    <div class="stat-box stat-amber">
+                        <p class="stat-number" id="statRevenue">$3,800</p>
+                        <p class="stat-title">Total Revenue</p>
+                    </div>
+                </div>
+
+                <div class="recent-section">
+                    <h3>Recent Invoices</h3>
+                    <div id="recentInvoices" class="invoice-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Companies Tab -->
+            <div class="tab-content" id="companies">
+                <button class="btn btn-primary" onclick="openModal('company')">+ Add Company</button>
+                <div id="companiesList" class="cards-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Drivers Tab -->
+            <div class="tab-content" id="drivers">
+                <button class="btn btn-green" onclick="openModal('driver')">+ Add Driver</button>
+                <div id="driversList" class="cards-grid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Invoices Tab -->
+            <div class="tab-content" id="invoices">
+                <button class="btn btn-purple" onclick="openModal('invoice')">+ Create New Invoice</button>
+                <table class="invoices-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Company</th>
+                            <th>Driver</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for Forms -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Company</h2>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="submitBtn" onclick="handleSubmit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div id="pdfModal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>Invoice Preview</h2>
+                <button class="close-btn" onclick="closePDFModal()">✕</button>
+            </div>
+            <div class="modal-body pdf-preview" id="pdfContent">
+                <!-- Populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="printPDF()">🖨️ Print PDF</button>
+                <button class="btn btn-secondary" onclick="closePDFModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for modals -->
+    <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal()"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
