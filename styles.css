@@ -859,18 +859,503 @@ body {
     display: none !important;
 }
 
-.mt-1 {
-    margin-top: 0.5rem;
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+
+/* ==========================================
+   TAB ACTIONS ROW
+   ========================================== */
+
+.tab-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0;
 }
 
-.mt-2 {
-    margin-top: 1rem;
+.tab-actions .btn {
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
-.mb-1 {
-    margin-bottom: 0.5rem;
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    flex: 1;
 }
 
-.mb-2 {
+.filter-select {
+    max-width: 220px;
+    margin-bottom: 0;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 1.5rem;
+}
+
+.btn-amber {
+    background-color: var(--color-amber);
+    color: #1a0a00;
+}
+
+.btn-amber:hover {
+    background-color: var(--color-amber-dark);
+    color: var(--color-white);
+}
+
+.empty-row {
+    text-align: center;
+    color: var(--color-text-lighter);
+    padding: 2rem !important;
+    font-style: italic;
+}
+
+/* ==========================================
+   BADGE
+   ========================================== */
+
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-bh {
+    background-color: rgba(248, 113, 113, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.badge-prime {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* ==========================================
+   CHECKBOX GROUP (Driver form)
+   ========================================== */
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: var(--color-dark-light);
+    border: 1px solid var(--color-dark-lighter-light);
+    border-radius: 0.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+    accent-color: var(--color-blue);
+    flex-shrink: 0;
+}
+
+.checkbox-label:hover {
+    color: var(--color-white);
+}
+
+/* ==========================================
+   SHEET JOBS SELECTION
+   ========================================== */
+
+.sheet-jobs-section {
+    background-color: var(--color-dark-light);
+    padding: 1.25rem;
+    border-radius: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.select-all-label {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-dark-lighter-light);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--color-white);
+}
+
+.jobs-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.job-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    background-color: var(--color-dark-lighter-light);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    transition: background-color 0.15s;
+}
+
+.job-check-item:hover {
+    background-color: var(--color-dark-lighter);
+    color: var(--color-white);
+}
+
+.job-check-item input[type="checkbox"] {
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+    accent-color: var(--color-blue);
+}
+
+.job-check-info {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.jobs-empty-hint {
+    color: var(--color-text-lighter);
+    text-align: center;
+    padding: 1.5rem;
+    font-style: italic;
+}
+
+/* ==========================================
+   BH RELOCATION INVOICE TEMPLATE
+   ========================================== */
+
+.bh-invoice {
+    background: #fff;
+    color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11pt;
+    padding: 1.5rem;
+    line-height: 1.4;
+}
+
+.bh-header {
+    text-align: center;
+    border-bottom: 3px solid #111;
+    padding-bottom: 0.75rem;
     margin-bottom: 1rem;
+}
+
+.bh-company-name {
+    font-size: 22pt;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.bh-company-sub {
+    font-size: 10pt;
+    margin-top: 0.25rem;
+    color: #333;
+}
+
+.bh-company-reg {
+    font-size: 9.5pt;
+    margin-top: 0.25rem;
+    color: #444;
+}
+
+.bh-driver-row {
+    display: flex;
+    justify-content: space-between;
+    background: #f0f0f0;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+    font-size: 10.5pt;
+    gap: 1rem;
+}
+
+.bh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+}
+
+.bh-table th {
+    background-color: #222;
+    color: #fff;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #555;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.bh-table td {
+    border: 1px solid #ccc;
+    padding: 0.4rem 0.5rem;
+    vertical-align: top;
+}
+
+.bh-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.bh-total-row td {
+    background-color: #e8e8e8;
+    font-size: 9pt;
+    border-top: 2px solid #333;
+}
+
+.bh-summary {
+    margin-top: 1.25rem;
+    width: 380px;
+    margin-left: auto;
+    border: 1px solid #ccc;
+}
+
+.bh-summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 10.5pt;
+}
+
+.bh-summary-row:last-child {
+    border-bottom: none;
+}
+
+.bh-grand-total {
+    background-color: #222;
+    color: #fff;
+    font-size: 12pt;
+    padding: 0.6rem 0.75rem;
+}
+
+.bh-signatures {
+    display: flex;
+    gap: 3rem;
+    margin-top: 2.5rem;
+}
+
+.bh-sig-block {
+    flex: 1;
+}
+
+.sig-line {
+    border-bottom: 2px solid #333;
+    margin-bottom: 0.3rem;
+    height: 2rem;
+}
+
+.sig-label {
+    font-size: 9pt;
+    color: #555;
+    text-align: center;
+}
+
+/* ==========================================
+   PRIME RELOCATIONS LOADING SHEET TEMPLATE
+   ========================================== */
+
+.prime-invoice {
+    background: #fff;
+    color: #111;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10.5pt;
+    padding: 1.5rem;
+    line-height: 1.4;
+}
+
+.prime-header {
+    text-align: center;
+    border-bottom: 3px solid #111;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.prime-company-name {
+    font-size: 20pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.prime-company-sub {
+    font-size: 9.5pt;
+    margin-top: 0.2rem;
+    color: #333;
+}
+
+.prime-company-reg {
+    font-size: 9pt;
+    margin-top: 0.2rem;
+    color: #444;
+}
+
+.prime-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    border: 1px solid #ccc;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    background: #fafafa;
+}
+
+.prime-info-row {
+    margin-bottom: 0.3rem;
+    font-size: 10pt;
+}
+
+.prime-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+}
+
+.prime-table th {
+    background-color: #1a3a6b;
+    color: #fff;
+    padding: 0.4rem 0.4rem;
+    border: 1px solid #2d5490;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 8.5pt;
+}
+
+.prime-table td {
+    border: 1px solid #bbb;
+    padding: 0.4rem 0.4rem;
+    vertical-align: top;
+}
+
+.prime-table tbody tr:nth-child(even) {
+    background-color: #f5f8ff;
+}
+
+.prime-total-row td {
+    background-color: #dce8ff;
+    border-top: 2px solid #1a3a6b;
+    font-size: 8.5pt;
+}
+
+.prime-summary-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.25rem;
+    border: 1px solid #ccc;
+    padding: 0.75rem 1rem;
+    background: #fafafa;
+}
+
+.prime-summary-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.prime-sum-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border-bottom: 1px dotted #ccc;
+    font-size: 10pt;
+}
+
+.prime-sum-row:last-child {
+    border-bottom: none;
+}
+
+.prime-balance-due {
+    background-color: #1a3a6b;
+    color: #fff;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.2rem;
+    margin-top: 0.25rem;
+}
+
+.prime-signature {
+    display: flex;
+    gap: 3rem;
+    margin-top: 2.5rem;
+}
+
+.prime-sig-block {
+    flex: 1;
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+
+@media print {
+    body > .app-container,
+    .app-header,
+    .app-nav,
+    .app-main,
+    .no-print {
+        display: none !important;
+    }
+
+    /* Show only the PDF modal content */
+    #pdfModal {
+        position: static !important;
+        transform: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+        background: #fff !important;
+        z-index: auto !important;
+    }
+
+    #pdfModal .modal-content {
+        max-width: none !important;
+        min-width: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    #pdfModal .modal-header,
+    #pdfModal .modal-footer {
+        display: none !important;
+    }
+
+    .modal-overlay {
+        display: none !important;
+    }
+
+    .pdf-preview {
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    .bh-invoice,
+    .prime-invoice {
+        page-break-inside: avoid;
+    }
+
+    @page {
+        margin: 1cm;
+        size: letter landscape;
+    }
 }
