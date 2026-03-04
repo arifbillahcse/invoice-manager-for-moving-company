@@ -308,7 +308,7 @@
 
         .line-item-header-row {
             display: grid;
-            grid-template-columns: 0.7fr 1.3fr 1.3fr 1.3fr 0.7fr 0.7fr 0.8fr 0.9fr 60px;
+            grid-template-columns: 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.7fr 0.8fr 0.8fr 1.2fr 60px;
             gap: 8px;
             margin-bottom: 6px;
             padding: 0 2px;
@@ -324,11 +324,11 @@
 
         .line-item-row {
             display: grid;
-            grid-template-columns: 0.7fr 1.3fr 1.3fr 1.3fr 0.7fr 0.7fr 0.8fr 0.9fr 60px;
+            grid-template-columns: 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.7fr 0.8fr 0.8fr 1.2fr 60px;
             gap: 8px;
             margin-bottom: 8px;
             align-items: center;
-            min-width: 720px;
+            min-width: 900px;
         }
 
         .line-item-row input {
@@ -872,6 +872,8 @@
                         <span>Rate</span>
                         <span>Total</span>
                         <span>Balance Due</span>
+                        <span>New Balance</span>
+                        <span>Remarks</span>
                         <span></span>
                     </div>
                     <div id="lineItemsContainer"></div>
@@ -938,8 +940,8 @@
                 driverId: 1,
                 date: '2026-03-01',
                 lineItems: [
-                    { jobNumber: 'J001', customerName: 'TUSTIN', from: 'Atlanta, GA', to: 'Miami, FL', cubicFeet: 200, rate: 2.5, balanceDue: 100 },
-                    { jobNumber: 'J002', customerName: 'Sara', from: 'Norcross, GA', to: 'Tampa, FL', cubicFeet: 3200, rate: 2, balanceDue: 500 }
+                    { jobNumber: 'J001', customerName: 'TUSTIN', from: 'Atlanta, GA', to: 'Miami, FL', cubicFeet: 200, rate: 2.5, balanceDue: 100, newBalance: 0, remarks: '' },
+                    { jobNumber: 'J002', customerName: 'Sara', from: 'Norcross, GA', to: 'Tampa, FL', cubicFeet: 3200, rate: 2, balanceDue: 500, newBalance: 200, remarks: 'Paid partial' }
                 ],
                 subtotal: 7000,
                 carrierFee: 700,
@@ -947,7 +949,7 @@
             }
         ];
 
-        let lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
+        let lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '', newBalance: '', remarks: '' }];
         let nextCompanyId = 3;
         let nextDriverId = 5;
         let nextInvoiceId = 3;
@@ -1127,7 +1129,7 @@
         }
 
         function addLineItem() {
-            lineItems.push({ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' });
+            lineItems.push({ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '', newBalance: '', remarks: '' });
             renderLineItems();
         }
 
@@ -1137,7 +1139,7 @@
         }
 
         function updateLineItem(idx, field, value) {
-            const numFields = ['cubicFeet', 'rate', 'balanceDue'];
+            const numFields = ['cubicFeet', 'rate', 'balanceDue', 'newBalance'];
             lineItems[idx][field] = numFields.includes(field) ? (parseFloat(value) || 0) : value;
             renderLineItems();
         }
@@ -1156,6 +1158,8 @@
                         <input type="number" placeholder="Rate" value="${item.rate || ''}" step="0.01" onchange="updateLineItem(${idx}, 'rate', this.value)">
                         <div class="line-item-total">$${total}</div>
                         <input type="number" placeholder="Bal Due" value="${item.balanceDue || ''}" step="0.01" onchange="updateLineItem(${idx}, 'balanceDue', this.value)">
+                        <input type="number" placeholder="New Bal" value="${item.newBalance || ''}" step="0.01" onchange="updateLineItem(${idx}, 'newBalance', this.value)">
+                        <input type="text" placeholder="Remarks" value="${item.remarks || ''}" onchange="updateLineItem(${idx}, 'remarks', this.value)">
                         ${lineItems.length > 1 ? `<button type="button" class="btn-small" onclick="removeLineItem(${idx})">&#x2715;</button>` : '<div></div>'}
                     </div>
                 `;
@@ -1192,7 +1196,7 @@
             renderInvoices();
             renderDashboard();
             showMessage('Invoice created successfully!', 'success');
-            lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
+            lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '', newBalance: '', remarks: '' }];
             renderLineItems();
             e.target.reset();
         }
@@ -1286,6 +1290,8 @@
                                 <th>Rate</th>
                                 <th>Total</th>
                                 <th>Balance Due</th>
+                                <th>New Balance</th>
+                                <th>Remarks</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1299,6 +1305,8 @@
                                     <td>$${parseFloat(job.rate || 0).toFixed(2)}</td>
                                     <td>$${((job.cubicFeet || 0) * (job.rate || 0)).toFixed(2)}</td>
                                     <td>$${parseFloat(job.balanceDue || 0).toFixed(2)}</td>
+                                    <td>$${parseFloat(job.newBalance || 0).toFixed(2)}</td>
+                                    <td>${job.remarks || ''}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -1334,7 +1342,7 @@
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
             if (modalId === 'invoiceModal') {
-                lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
+                lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '', newBalance: '', remarks: '' }];
                 renderLineItems();
                 updateInvoiceDrivers();
             }
