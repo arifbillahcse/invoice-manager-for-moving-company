@@ -302,12 +302,33 @@
             color: #cbd5e1;
         }
 
+        .line-items-scroll {
+            overflow-x: auto;
+        }
+
+        .line-item-header-row {
+            display: grid;
+            grid-template-columns: 0.7fr 1.3fr 1.3fr 1.3fr 0.7fr 0.7fr 0.8fr 0.9fr 60px;
+            gap: 8px;
+            margin-bottom: 6px;
+            padding: 0 2px;
+        }
+
+        .line-item-header-row span {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
         .line-item-row {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr auto;
-            gap: 10px;
-            margin-bottom: 10px;
+            grid-template-columns: 0.7fr 1.3fr 1.3fr 1.3fr 0.7fr 0.7fr 0.8fr 0.9fr 60px;
+            gap: 8px;
+            margin-bottom: 8px;
             align-items: center;
+            min-width: 720px;
         }
 
         .line-item-row input {
@@ -814,7 +835,7 @@
 
     <!-- Create Invoice Modal -->
     <div id="invoiceModal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 960px;">
             <div class="modal-header">
                 <h2>Create New Invoice</h2>
                 <button class="close-btn" onclick="closeModal('invoiceModal')">&times;</button>
@@ -835,25 +856,27 @@
                     </div>
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Customer Name:</label>
-                        <input type="text" id="invoiceCustomer" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Invoice Date:</label>
-                        <input type="date" id="invoiceDate" required>
-                    </div>
+                <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
+                    <label>Invoice Date:</label>
+                    <input type="date" id="invoiceDate" required>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Delivery Location:</label>
-                    <input type="text" id="invoiceLocation" required>
+                <h4 style="color: #cbd5e1; margin-bottom: 10px;">📦 Jobs</h4>
+                <div class="line-items-scroll">
+                    <div class="line-item-header-row">
+                        <span>Job #</span>
+                        <span>Customer</span>
+                        <span>From</span>
+                        <span>To</span>
+                        <span>CF</span>
+                        <span>Rate</span>
+                        <span>Total</span>
+                        <span>Balance Due</span>
+                        <span></span>
+                    </div>
+                    <div id="lineItemsContainer"></div>
                 </div>
-
-                <h4 style="color: #cbd5e1; margin-bottom: 15px;">📦 Line Items</h4>
-                <div id="lineItemsContainer"></div>
-                <button type="button" class="btn btn-primary" style="margin-bottom: 20px;" onclick="addLineItem()">+ Add Line Item</button>
+                <button type="button" class="btn btn-primary" style="margin-bottom: 20px;" onclick="addLineItem()">+ Add Job</button>
 
                 <div class="summary-box">
                     <div class="summary-row">
@@ -913,29 +936,18 @@
                 id: 1,
                 companyId: 1,
                 driverId: 1,
-                customerName: 'TUSTIN',
-                location: 'Miami, FL',
                 date: '2026-03-01',
-                lineItems: [{ description: 'Residential Moving', cubicFeet: 200, rate: 2.5 }],
-                subtotal: 500,
-                carrierFee: 50,
-                total: 550
-            },
-            {
-                id: 2,
-                companyId: 1,
-                driverId: 1,
-                customerName: 'Sara',
-                location: 'Tampa, FL',
-                date: '2026-03-02',
-                lineItems: [{ description: 'Commercial Moving', cubicFeet: 3200, rate: 2 }],
-                subtotal: 6400,
-                carrierFee: 640,
-                total: 7040
+                lineItems: [
+                    { jobNumber: 'J001', customerName: 'TUSTIN', from: 'Atlanta, GA', to: 'Miami, FL', cubicFeet: 200, rate: 2.5, balanceDue: 100 },
+                    { jobNumber: 'J002', customerName: 'Sara', from: 'Norcross, GA', to: 'Tampa, FL', cubicFeet: 3200, rate: 2, balanceDue: 500 }
+                ],
+                subtotal: 7000,
+                carrierFee: 700,
+                total: 7700
             }
         ];
 
-        let lineItems = [{ description: '', cubicFeet: '', rate: '' }];
+        let lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
         let nextCompanyId = 3;
         let nextDriverId = 5;
         let nextInvoiceId = 3;
@@ -1077,16 +1089,17 @@
 
         // Invoices
         function renderInvoices() {
-            let html = '<table><thead><tr><th>Invoice #</th><th>Company</th><th>Driver</th><th>Customer</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Invoice #</th><th>Company</th><th>Driver</th><th>Jobs</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
             invoices.forEach(inv => {
                 const company = companies.find(c => c.id === inv.companyId);
                 const driver = drivers.find(d => d.id === inv.driverId);
+                const jobCount = inv.lineItems ? inv.lineItems.length : 0;
                 html += `
                     <tr>
                         <td>#${inv.id}</td>
                         <td>${company.name}</td>
                         <td>${driver.firstName} ${driver.lastName}</td>
-                        <td>${inv.customerName}</td>
+                        <td>${jobCount} job${jobCount !== 1 ? 's' : ''}</td>
                         <td>$${inv.total.toFixed(2)}</td>
                         <td>${inv.date}</td>
                         <td>
@@ -1114,7 +1127,7 @@
         }
 
         function addLineItem() {
-            lineItems.push({ description: '', cubicFeet: '', rate: '' });
+            lineItems.push({ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' });
             renderLineItems();
         }
 
@@ -1124,21 +1137,26 @@
         }
 
         function updateLineItem(idx, field, value) {
-            lineItems[idx][field] = field === 'description' ? value : parseFloat(value) || 0;
+            const numFields = ['cubicFeet', 'rate', 'balanceDue'];
+            lineItems[idx][field] = numFields.includes(field) ? (parseFloat(value) || 0) : value;
             renderLineItems();
         }
 
         function renderLineItems() {
             let html = '';
             lineItems.forEach((item, idx) => {
-                const total = (item.cubicFeet * item.rate).toFixed(2);
+                const total = ((item.cubicFeet || 0) * (item.rate || 0)).toFixed(2);
                 html += `
                     <div class="line-item-row">
-                        <input type="text" placeholder="Description" value="${item.description}" onchange="updateLineItem(${idx}, 'description', this.value)">
-                        <input type="number" placeholder="CF" value="${item.cubicFeet}" onchange="updateLineItem(${idx}, 'cubicFeet', this.value)">
-                        <input type="number" placeholder="Rate" value="${item.rate}" step="0.01" onchange="updateLineItem(${idx}, 'rate', this.value)">
+                        <input type="text" placeholder="Job #" value="${item.jobNumber || ''}" onchange="updateLineItem(${idx}, 'jobNumber', this.value)">
+                        <input type="text" placeholder="Customer" value="${item.customerName || ''}" onchange="updateLineItem(${idx}, 'customerName', this.value)">
+                        <input type="text" placeholder="From" value="${item.from || ''}" onchange="updateLineItem(${idx}, 'from', this.value)">
+                        <input type="text" placeholder="To" value="${item.to || ''}" onchange="updateLineItem(${idx}, 'to', this.value)">
+                        <input type="number" placeholder="CF" value="${item.cubicFeet || ''}" onchange="updateLineItem(${idx}, 'cubicFeet', this.value)">
+                        <input type="number" placeholder="Rate" value="${item.rate || ''}" step="0.01" onchange="updateLineItem(${idx}, 'rate', this.value)">
                         <div class="line-item-total">$${total}</div>
-                        ${lineItems.length > 1 ? `<button type="button" class="btn-small" onclick="removeLineItem(${idx})">Remove</button>` : ''}
+                        <input type="number" placeholder="Bal Due" value="${item.balanceDue || ''}" step="0.01" onchange="updateLineItem(${idx}, 'balanceDue', this.value)">
+                        ${lineItems.length > 1 ? `<button type="button" class="btn-small" onclick="removeLineItem(${idx})">&#x2715;</button>` : '<div></div>'}
                     </div>
                 `;
             });
@@ -1147,7 +1165,7 @@
         }
 
         function updateInvoiceTotals() {
-            const subtotal = lineItems.reduce((sum, item) => sum + (item.cubicFeet * item.rate), 0);
+            const subtotal = lineItems.reduce((sum, item) => sum + ((item.cubicFeet || 0) * (item.rate || 0)), 0);
             const carrierFee = subtotal * 0.1;
             const total = subtotal + carrierFee;
             document.getElementById('invoiceSubtotal').textContent = '$' + subtotal.toFixed(2);
@@ -1157,14 +1175,12 @@
 
         function addInvoice(e) {
             e.preventDefault();
-            const subtotal = lineItems.reduce((sum, item) => sum + (item.cubicFeet * item.rate), 0);
+            const subtotal = lineItems.reduce((sum, item) => sum + ((item.cubicFeet || 0) * (item.rate || 0)), 0);
             const carrierFee = subtotal * 0.1;
             const newInvoice = {
                 id: nextInvoiceId++,
                 companyId: parseInt(document.getElementById('invoiceCompany').value),
                 driverId: parseInt(document.getElementById('invoiceDriver').value),
-                customerName: document.getElementById('invoiceCustomer').value,
-                location: document.getElementById('invoiceLocation').value,
                 date: document.getElementById('invoiceDate').value,
                 lineItems: JSON.parse(JSON.stringify(lineItems)),
                 subtotal: subtotal,
@@ -1176,7 +1192,7 @@
             renderInvoices();
             renderDashboard();
             showMessage('Invoice created successfully!', 'success');
-            lineItems = [{ description: '', cubicFeet: '', rate: '' }];
+            lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
             renderLineItems();
             e.target.reset();
         }
@@ -1233,10 +1249,14 @@
 
             let totalCF = 0;
             let totalAmount = 0;
+            let totalBalanceDue = 0;
+            const allJobs = [];
             driverInvoices.forEach(inv => {
                 inv.lineItems.forEach(item => {
-                    totalCF += item.cubicFeet;
-                    totalAmount += (item.cubicFeet * item.rate);
+                    totalCF += (item.cubicFeet || 0);
+                    totalAmount += ((item.cubicFeet || 0) * (item.rate || 0));
+                    totalBalanceDue += (item.balanceDue || 0);
+                    allJobs.push({ ...item, invoiceId: inv.id, date: inv.date });
                 });
             });
 
@@ -1254,31 +1274,39 @@
                         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
                     </div>
 
+                    <div style="overflow-x:auto;">
                     <table class="manifest-table">
                         <thead>
                             <tr>
-                                <th>Invoice #</th>
+                                <th>Job #</th>
                                 <th>Customer</th>
-                                <th>Location</th>
+                                <th>From</th>
+                                <th>To</th>
                                 <th>CF</th>
+                                <th>Rate</th>
                                 <th>Total</th>
+                                <th>Balance Due</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${driverInvoices.map(inv => `
+                            ${allJobs.map(job => `
                                 <tr>
-                                    <td>#${inv.id}</td>
-                                    <td>${inv.customerName}</td>
-                                    <td>${inv.location}</td>
-                                    <td>${inv.lineItems.reduce((sum, item) => sum + item.cubicFeet, 0)}</td>
-                                    <td>$${inv.total.toFixed(2)}</td>
+                                    <td>${job.jobNumber || ''}</td>
+                                    <td>${job.customerName || ''}</td>
+                                    <td>${job.from || ''}</td>
+                                    <td>${job.to || ''}</td>
+                                    <td>${job.cubicFeet || 0}</td>
+                                    <td>$${parseFloat(job.rate || 0).toFixed(2)}</td>
+                                    <td>$${((job.cubicFeet || 0) * (job.rate || 0)).toFixed(2)}</td>
+                                    <td>$${parseFloat(job.balanceDue || 0).toFixed(2)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
+                    </div>
 
                     <div class="manifest-totals">
-                        Total CF: ${totalCF} | Total Amount: $${totalAmount.toFixed(2)}
+                        Total CF: ${totalCF} &nbsp;|&nbsp; Total Amount: $${totalAmount.toFixed(2)} &nbsp;|&nbsp; Total Balance Due: $${totalBalanceDue.toFixed(2)}
                     </div>
                 </div>
             `;
@@ -1306,7 +1334,7 @@
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
             if (modalId === 'invoiceModal') {
-                lineItems = [{ description: '', cubicFeet: '', rate: '' }];
+                lineItems = [{ jobNumber: '', customerName: '', from: '', to: '', cubicFeet: '', rate: '', balanceDue: '' }];
                 renderLineItems();
                 updateInvoiceDrivers();
             }
