@@ -4,9 +4,9 @@
 // Edit these values to match your MySQL setup
 // ─────────────────────────────────────────────
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');      // your MySQL username
-define('DB_PASS', '');          // your MySQL password
-define('DB_NAME', 'invoice_manager');
+define('DB_USER', 'bhrelocation_app');
+define('DB_PASS', 'Qi8KqJVQ2AbyVU');
+define('DB_NAME', 'bhrelocation_app');
 
 function getDB(): PDO {
     static $pdo = null;
@@ -34,7 +34,7 @@ function getDB(): PDO {
 }
 
 // Send JSON response and exit
-function jsonOut(mixed $data, int $status = 200): void {
+function jsonOut($data, int $status = 200): void {
     http_response_code($status);
     header('Content-Type: application/json');
     echo json_encode($data);
