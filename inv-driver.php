@@ -212,39 +212,44 @@ function updateDrSummary() {
 
 // ── Save (create or update) ──────────────────
 
-function saveDrInvoice(e) {
+async function saveDrInvoice(e) {
     e.preventDefault();
     const did = parseInt(document.getElementById('drInvDriver').value);
     if (!did) { toast('Please select a driver.', 'error'); return; }
     if (!drJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
-    const sub   = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee   = sub * 0.1;
-    const date  = document.getElementById('drInvDate').value;
-    const items = JSON.parse(JSON.stringify(drJobRows));
+    const sub     = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee     = sub * 0.1;
+    const date    = document.getElementById('drInvDate').value;
+    const items   = JSON.parse(JSON.stringify(drJobRows));
+    const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee };
 
-    if (editingDrInvId) {
-        const inv = driverInvoices.find(i => i.id === editingDrInvId);
-        inv.driverId = did; inv.date = date; inv.lineItems = items;
-        inv.subtotal = sub; inv.carrierFee = fee; inv.total = sub + fee;
-        toast('Driver invoice updated!', 'success');
-    } else {
-        driverInvoices.push({ id: nextDrInvId++, driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
-        toast('Driver invoice saved!', 'success');
-    }
-
-    editingDrInvId = null;
-    save(); renderPage();
-    closeModal('drInvModal');
+    try {
+        if (editingDrInvId) {
+            await api('inv-driver', 'PUT', payload, editingDrInvId);
+            Object.assign(driverInvoices.find(i => i.id === editingDrInvId), payload);
+            toast('Driver invoice updated!', 'success');
+        } else {
+            const res = await api('inv-driver', 'POST', payload);
+            driverInvoices.push({ id: res.id, ...payload });
+            toast('Driver invoice saved!', 'success');
+        }
+        editingDrInvId = null;
+        renderPage();
+        closeModal('drInvModal');
+    } catch (_) { /* error already shown by api() */ }
 }
 
 // ── Delete ───────────────────────────────────
 
-function deleteDrInvoice(id) {
+async function deleteDrInvoice(id) {
     if (!confirm('Delete this invoice?')) return;
-    driverInvoices = driverInvoices.filter(i => i.id !== id);
-    save(); renderPage();
-    toast('Invoice deleted.', 'success');
+    try {
+        await api('inv-driver', 'DELETE', null, id);
+        driverInvoices = driverInvoices.filter(i => i.id !== id);
+        renderPage();
+        toast('Invoice deleted.', 'success');
+    } catch (_) { /* error already shown by api() */ }
 }
 
 // ── Build invoice HTML (shared by view + print) ──
@@ -331,8 +336,8 @@ function printDrInvoice(id) {
     triggerPrint(buildDrInvoiceHtml(id));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!load()) loadDefaults();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFromDB();
     renderPage();
 });
 </script>

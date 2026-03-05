@@ -212,39 +212,44 @@ function updateCoSummary() {
 
 // ── Save (create or update) ──────────────────
 
-function saveCoInvoice(e) {
+async function saveCoInvoice(e) {
     e.preventDefault();
     const cid = parseInt(document.getElementById('coInvCompany').value);
     if (!cid) { toast('Please select a company.', 'error'); return; }
     if (!coJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
-    const sub   = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee   = sub * 0.1;
-    const date  = document.getElementById('coInvDate').value;
-    const items = JSON.parse(JSON.stringify(coJobRows));
+    const sub     = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee     = sub * 0.1;
+    const date    = document.getElementById('coInvDate').value;
+    const items   = JSON.parse(JSON.stringify(coJobRows));
+    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee };
 
-    if (editingCoInvId) {
-        const inv = companyInvoices.find(i => i.id === editingCoInvId);
-        inv.companyId = cid; inv.date = date; inv.lineItems = items;
-        inv.subtotal = sub; inv.carrierFee = fee; inv.total = sub + fee;
-        toast('Company invoice updated!', 'success');
-    } else {
-        companyInvoices.push({ id: nextCoInvId++, companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
-        toast('Company invoice saved!', 'success');
-    }
-
-    editingCoInvId = null;
-    save(); renderPage();
-    closeModal('coInvModal');
+    try {
+        if (editingCoInvId) {
+            await api('inv-company', 'PUT', payload, editingCoInvId);
+            Object.assign(companyInvoices.find(i => i.id === editingCoInvId), payload);
+            toast('Company invoice updated!', 'success');
+        } else {
+            const res = await api('inv-company', 'POST', payload);
+            companyInvoices.push({ id: res.id, ...payload });
+            toast('Company invoice saved!', 'success');
+        }
+        editingCoInvId = null;
+        renderPage();
+        closeModal('coInvModal');
+    } catch (_) { /* error already shown by api() */ }
 }
 
 // ── Delete ───────────────────────────────────
 
-function deleteCoInvoice(id) {
+async function deleteCoInvoice(id) {
     if (!confirm('Delete this invoice?')) return;
-    companyInvoices = companyInvoices.filter(i => i.id !== id);
-    save(); renderPage();
-    toast('Invoice deleted.', 'success');
+    try {
+        await api('inv-company', 'DELETE', null, id);
+        companyInvoices = companyInvoices.filter(i => i.id !== id);
+        renderPage();
+        toast('Invoice deleted.', 'success');
+    } catch (_) { /* error already shown by api() */ }
 }
 
 // ── Build invoice HTML (shared by view + print) ──
@@ -331,8 +336,8 @@ function printCoInvoice(id) {
     triggerPrint(buildCoInvoiceHtml(id));
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!load()) loadDefaults();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFromDB();
     renderPage();
 });
 </script>

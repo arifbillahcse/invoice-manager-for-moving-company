@@ -82,7 +82,7 @@ function openDriverModal(id) {
     document.getElementById('driverModal').classList.add('active');
 }
 
-function saveDriver(e) {
+async function saveDriver(e) {
     e.preventDefault();
     const editId = parseInt(document.getElementById('editDriverId').value) || null;
     const data = {
@@ -91,26 +91,33 @@ function saveDriver(e) {
         phone:     document.getElementById('driverPhone').value.trim(),
         license:   document.getElementById('driverLicense').value.trim(),
     };
-    if (editId) {
-        Object.assign(drivers.find(d => d.id === editId), data);
-        toast('Driver updated!', 'success');
-    } else {
-        drivers.push({ id: nextDriverId++, ...data });
-        toast('Driver added!', 'success');
-    }
-    save(); renderPage();
-    closeModal('driverModal');
+    try {
+        if (editId) {
+            await api('drivers', 'PUT', data, editId);
+            Object.assign(drivers.find(d => d.id === editId), data);
+            toast('Driver updated!', 'success');
+        } else {
+            const res = await api('drivers', 'POST', data);
+            drivers.push({ id: res.id, ...data });
+            toast('Driver added!', 'success');
+        }
+        renderPage();
+        closeModal('driverModal');
+    } catch (_) { /* error already shown by api() */ }
 }
 
-function deleteDriver(id) {
+async function deleteDriver(id) {
     if (!confirm('Delete this driver?')) return;
-    drivers = drivers.filter(d => d.id !== id);
-    save(); renderPage();
-    toast('Driver deleted.', 'success');
+    try {
+        await api('drivers', 'DELETE', null, id);
+        drivers = drivers.filter(d => d.id !== id);
+        renderPage();
+        toast('Driver deleted.', 'success');
+    } catch (_) { /* error already shown by api() */ }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!load()) loadDefaults();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFromDB();
     renderPage();
 });
 </script>

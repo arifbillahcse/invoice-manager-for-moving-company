@@ -1,0 +1,98 @@
+-- Invoice Manager for Moving Company
+-- MySQL Database Schema
+-- Run this file once to set up your database:
+--   mysql -u root -p < schema.sql
+
+CREATE DATABASE IF NOT EXISTS invoice_manager
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE invoice_manager;
+
+-- ─────────────────────────────────────────────
+-- Companies
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS companies (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(255) NOT NULL,
+    address    VARCHAR(255) DEFAULT '',
+    city       VARCHAR(255) DEFAULT '',
+    phone      VARCHAR(50)  DEFAULT '',
+    dot_number VARCHAR(50)  DEFAULT '',
+    mc_number  VARCHAR(50)  DEFAULT '',
+    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ─────────────────────────────────────────────
+-- Drivers
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS drivers (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name  VARCHAR(100) NOT NULL,
+    phone      VARCHAR(50)  DEFAULT '',
+    license    VARCHAR(100) DEFAULT '',
+    created_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ─────────────────────────────────────────────
+-- Company Invoices
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS company_invoices (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    company_id  INT            NOT NULL,
+    date        DATE           NOT NULL,
+    subtotal    DECIMAL(12,2)  DEFAULT 0,
+    carrier_fee DECIMAL(12,2)  DEFAULT 0,
+    total       DECIMAL(12,2)  DEFAULT 0,
+    created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS company_invoice_items (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id    INT            NOT NULL,
+    sort_order    INT            DEFAULT 0,
+    job_number    VARCHAR(100)   DEFAULT '',
+    driver_id     INT            DEFAULT NULL,
+    customer_name VARCHAR(255)   DEFAULT '',
+    from_location VARCHAR(255)   DEFAULT '',
+    to_location   VARCHAR(255)   DEFAULT '',
+    cubic_feet    DECIMAL(10,2)  DEFAULT 0,
+    rate          DECIMAL(10,4)  DEFAULT 0,
+    balance_due   DECIMAL(10,2)  DEFAULT 0,
+    new_balance   DECIMAL(10,2)  DEFAULT 0,
+    remarks       TEXT,
+    FOREIGN KEY (invoice_id) REFERENCES company_invoices(id) ON DELETE CASCADE
+);
+
+-- ─────────────────────────────────────────────
+-- Driver Invoices
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS driver_invoices (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    driver_id   INT            NOT NULL,
+    date        DATE           NOT NULL,
+    subtotal    DECIMAL(12,2)  DEFAULT 0,
+    carrier_fee DECIMAL(12,2)  DEFAULT 0,
+    total       DECIMAL(12,2)  DEFAULT 0,
+    created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS driver_invoice_items (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_id    INT            NOT NULL,
+    sort_order    INT            DEFAULT 0,
+    job_number    VARCHAR(100)   DEFAULT '',
+    company_id    INT            DEFAULT NULL,
+    customer_name VARCHAR(255)   DEFAULT '',
+    from_location VARCHAR(255)   DEFAULT '',
+    to_location   VARCHAR(255)   DEFAULT '',
+    cubic_feet    DECIMAL(10,2)  DEFAULT 0,
+    rate          DECIMAL(10,4)  DEFAULT 0,
+    balance_due   DECIMAL(10,2)  DEFAULT 0,
+    new_balance   DECIMAL(10,2)  DEFAULT 0,
+    remarks       TEXT,
+    FOREIGN KEY (invoice_id) REFERENCES driver_invoices(id) ON DELETE CASCADE
+);

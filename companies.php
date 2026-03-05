@@ -91,7 +91,7 @@ function openCompanyModal(id) {
     document.getElementById('companyModal').classList.add('active');
 }
 
-function saveCompany(e) {
+async function saveCompany(e) {
     e.preventDefault();
     const editId = parseInt(document.getElementById('editCompanyId').value) || null;
     const data = {
@@ -102,26 +102,33 @@ function saveCompany(e) {
         dotNumber: document.getElementById('companyDOT').value.trim(),
         mcNumber:  document.getElementById('companyMC').value.trim(),
     };
-    if (editId) {
-        Object.assign(companies.find(c => c.id === editId), data);
-        toast('Company updated!', 'success');
-    } else {
-        companies.push({ id: nextCompanyId++, ...data });
-        toast('Company added!', 'success');
-    }
-    save(); renderPage();
-    closeModal('companyModal');
+    try {
+        if (editId) {
+            await api('companies', 'PUT', data, editId);
+            Object.assign(companies.find(c => c.id === editId), data);
+            toast('Company updated!', 'success');
+        } else {
+            const res = await api('companies', 'POST', data);
+            companies.push({ id: res.id, ...data });
+            toast('Company added!', 'success');
+        }
+        renderPage();
+        closeModal('companyModal');
+    } catch (_) { /* error already shown by api() */ }
 }
 
-function deleteCompany(id) {
+async function deleteCompany(id) {
     if (!confirm('Delete this company?')) return;
-    companies = companies.filter(c => c.id !== id);
-    save(); renderPage();
-    toast('Company deleted.', 'success');
+    try {
+        await api('companies', 'DELETE', null, id);
+        companies = companies.filter(c => c.id !== id);
+        renderPage();
+        toast('Company deleted.', 'success');
+    } catch (_) { /* error already shown by api() */ }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (!load()) loadDefaults();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadFromDB();
     renderPage();
 });
 </script>
