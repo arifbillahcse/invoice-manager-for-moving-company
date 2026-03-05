@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drivers - Invoice Management System</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="app-wrapper">
+
+    <div class="header">
+        <div>
+            <h1>📋 Invoice Management System</h1>
+            <p>Manage companies, drivers, and generate invoices</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-amber" onclick="loadSampleData()">🔄 Load Sample Data</button>
+            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <a class="nav-tab" href="dashboard.html">📊 Dashboard</a>
+        <a class="nav-tab" href="companies.html">🏢 Companies</a>
+        <a class="nav-tab active" href="drivers.html">🚗 Drivers</a>
+        <a class="nav-tab" href="invoices.html">📄 Invoices</a>
+        <a class="nav-tab" href="inv-company.html">🏢 Invoice / Company</a>
+        <a class="nav-tab" href="inv-driver.html">🚗 Invoice / Driver</a>
+    </div>
+
+    <div class="content">
+        <h2 style="margin-bottom:20px;">Drivers</h2>
+        <div class="btn-row">
+            <button class="btn btn-success" onclick="openDriverModal()">+ Add Driver</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Full Name</th><th>Phone</th><th>License #</th><th>Actions</th></tr></thead>
+                <tbody id="driversTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Driver Modal -->
+<div id="driverModal" class="modal">
+    <div class="modal-box modal-sm">
+        <div class="modal-hdr">
+            <h2 id="driverModalTitle">Add Driver</h2>
+            <button class="close-btn" onclick="closeModal('driverModal')">&times;</button>
+        </div>
+        <form id="driverForm" onsubmit="saveDriver(event)">
+            <input type="hidden" id="editDriverId">
+            <div class="form-grid">
+                <div class="form-group"><label>First Name *</label><input type="text" id="driverFirstName" required placeholder="First name"></div>
+                <div class="form-group"><label>Last Name *</label><input type="text" id="driverLastName" required placeholder="Last name"></div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group"><label>Phone</label><input type="text" id="driverPhone" placeholder="(000) 000-0000"></div>
+                <div class="form-group"><label>License Number</label><input type="text" id="driverLicense" placeholder="License #"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('driverModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="driverSubmitBtn">Save Driver</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/utils.js"></script>
+<script>
+function renderPage() {
+    const tb = document.getElementById('driversTbody');
+    if (!drivers.length) {
+        tb.innerHTML = '<tr><td colspan="4" class="empty">No drivers yet. Click "+ Add Driver" to start.</td></tr>';
+        return;
+    }
+    tb.innerHTML = drivers.map(d => `
+        <tr>
+            <td><strong>${d.firstName} ${d.lastName}</strong></td>
+            <td>${d.phone || '—'}</td>
+            <td>${d.license || '—'}</td>
+            <td><div class="action-btns">
+                <button class="btn-xs btn-xs-edit"   onclick="openDriverModal(${d.id})">✏️ Edit</button>
+                <button class="btn-xs btn-xs-delete" onclick="deleteDriver(${d.id})">🗑️ Delete</button>
+            </div></td>
+        </tr>`).join('');
+}
+
+function openDriverModal(id) {
+    document.getElementById('driverForm').reset();
+    document.getElementById('editDriverId').value = '';
+    document.getElementById('driverModalTitle').textContent = 'Add Driver';
+    document.getElementById('driverSubmitBtn').textContent  = 'Save Driver';
+    if (id) {
+        const d = drivers.find(x => x.id === id);
+        if (!d) return;
+        document.getElementById('editDriverId').value    = id;
+        document.getElementById('driverFirstName').value = d.firstName;
+        document.getElementById('driverLastName').value  = d.lastName;
+        document.getElementById('driverPhone').value     = d.phone   || '';
+        document.getElementById('driverLicense').value   = d.license || '';
+        document.getElementById('driverModalTitle').textContent = 'Edit Driver';
+        document.getElementById('driverSubmitBtn').textContent  = 'Update Driver';
+    }
+    document.getElementById('driverModal').classList.add('active');
+}
+
+function saveDriver(e) {
+    e.preventDefault();
+    const editId = parseInt(document.getElementById('editDriverId').value) || null;
+    const data = {
+        firstName: document.getElementById('driverFirstName').value.trim(),
+        lastName:  document.getElementById('driverLastName').value.trim(),
+        phone:     document.getElementById('driverPhone').value.trim(),
+        license:   document.getElementById('driverLicense').value.trim(),
+    };
+    if (editId) {
+        Object.assign(drivers.find(d => d.id === editId), data);
+        toast('Driver updated!', 'success');
+    } else {
+        drivers.push({ id: nextDriverId++, ...data });
+        toast('Driver added!', 'success');
+    }
+    save(); renderPage();
+    closeModal('driverModal');
+}
+
+function deleteDriver(id) {
+    if (!confirm('Delete this driver?')) return;
+    drivers = drivers.filter(d => d.id !== id);
+    save(); renderPage();
+    toast('Driver deleted.', 'success');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!load()) loadDefaults();
+    renderPage();
+});
+</script>
+</body>
+</html>

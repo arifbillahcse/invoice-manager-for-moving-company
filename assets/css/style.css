@@ -58,6 +58,7 @@ body {
     border: 2px solid var(--border); color: var(--text2);
     cursor: pointer; font-size: 14px; font-weight: bold;
     border-radius: 6px; transition: all .25s;
+    text-decoration: none; display: inline-block;
 }
 .nav-tab:hover { color: var(--text); border-color: #64748b; }
 .nav-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
