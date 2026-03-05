@@ -59,15 +59,13 @@ function downloadPdf(html, filename) {
 // ── Pagination helper ─────────────────────────
 // Renders pagination controls into containerId.
 // Calls onChange(newPage) when a page button is clicked.
-let _pgnCb = null;
-
 function renderPagination(containerId, total, current, pageSize, onChange) {
     const el = document.getElementById(containerId);
     if (!el) return;
     const totalPages = Math.ceil(total / pageSize);
     if (totalPages <= 1) { el.innerHTML = ''; return; }
 
-    _pgnCb = onChange;
+    window._pgnCb = onChange;
 
     const start = (current - 1) * pageSize + 1;
     const end   = Math.min(current * pageSize, total);
