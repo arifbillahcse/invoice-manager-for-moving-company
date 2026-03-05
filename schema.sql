@@ -96,3 +96,16 @@ CREATE TABLE IF NOT EXISTS driver_invoice_items (
     remarks       TEXT,
     FOREIGN KEY (invoice_id) REFERENCES driver_invoices(id) ON DELETE CASCADE
 );
+
+-- ─────────────────────────────────────────────
+-- Admin Users
+-- Run this in phpMyAdmin SQL tab if you already imported the rest of schema.sql:
+--   CREATE TABLE IF NOT EXISTS users ( ... ) -- (copy the block below)
+-- Then visit create-admin.php to create your first account.
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS users (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);

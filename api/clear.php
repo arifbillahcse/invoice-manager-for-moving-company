@@ -1,6 +1,7 @@
 <?php
 // Deletes all data from the database
 require_once '../config/db.php';
+require_once '../includes/auth-api.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonOut(['error' => 'POST only'], 405);

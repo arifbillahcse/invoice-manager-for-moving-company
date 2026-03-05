@@ -1,5 +1,6 @@
 <?php
 require_once '../config/db.php';
+require_once '../includes/auth-api.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $db     = getDB();

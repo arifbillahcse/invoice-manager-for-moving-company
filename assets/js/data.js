@@ -24,12 +24,36 @@ async function api(endpoint, method = 'GET', body = null, id = null) {
     }
 
     const json = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+        window.location.href = 'login.php';
+        throw new Error('Unauthorized');
+    }
     if (!res.ok) {
         const msg = json.error || ('Server error ' + res.status);
         toast(msg, 'error');
         throw new Error(msg);
     }
     return json;
+}
+
+// ── Change Password (called from header modal) ─
+async function submitChangePassword(e) {
+    e.preventDefault();
+    const btn = document.getElementById('cpSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+        await api('change-password', 'POST', {
+            currentPassword: document.getElementById('cpCurrent').value,
+            newPassword:     document.getElementById('cpNew').value,
+            confirmPassword: document.getElementById('cpConfirm').value,
+        });
+        toast('Password updated successfully!', 'success');
+        document.getElementById('changePwForm').reset();
+        document.getElementById('changePwModal').classList.remove('active');
+    } catch (_) { /* error already shown by api() */ }
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
 }
 
 // ── Load all data from the database ──────────

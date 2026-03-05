@@ -1,4 +1,5 @@
 <?php
+require 'includes/auth.php';
 $pageTitle  = 'Dashboard';
 $activePage = 'dashboard';
 include 'includes/header.php';

@@ -1,4 +1,5 @@
 <?php
+require 'includes/auth.php';
 $pageTitle  = 'Invoice / Company';
 $activePage = 'inv-company';
 include 'includes/header.php';

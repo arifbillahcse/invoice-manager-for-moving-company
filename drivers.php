@@ -1,4 +1,5 @@
 <?php
+require 'includes/auth.php';
 $pageTitle  = 'Drivers';
 $activePage = 'drivers';
 include 'includes/header.php';

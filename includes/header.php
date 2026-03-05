@@ -28,8 +28,38 @@ $navItems = [
         </div>
         <div class="header-actions">
             <a class="btn btn-success" href="api/export.php">📥 Export CSV</a>
+            <button class="btn btn-secondary" onclick="document.getElementById('changePwModal').classList.add('active')">🔑 Change Password</button>
+            <a class="btn btn-danger" href="logout.php">🚪 Logout</a>
         </div>
     </div>
+
+<!-- Change Password Modal -->
+<div id="changePwModal" class="modal">
+    <div class="modal-box modal-sm">
+        <div class="modal-hdr">
+            <h2>Change Password</h2>
+            <button class="close-btn" onclick="document.getElementById('changePwModal').classList.remove('active')">&times;</button>
+        </div>
+        <form id="changePwForm" onsubmit="submitChangePassword(event)">
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Current Password</label>
+                <input type="password" id="cpCurrent" required placeholder="Your current password">
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>New Password <span style="color:var(--text3);font-weight:400;">(min. 8 characters)</span></label>
+                <input type="password" id="cpNew" required placeholder="New password">
+            </div>
+            <div class="form-group" style="margin-bottom:4px;">
+                <label>Confirm New Password</label>
+                <input type="password" id="cpConfirm" required placeholder="Repeat new password">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('changePwModal').classList.remove('active')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="cpSubmitBtn">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <div class="nav-tabs">
         <?php foreach ($navItems as $key => $item): ?>

@@ -1,4 +1,5 @@
 <?php
+require 'includes/auth.php';
 $pageTitle  = 'Invoice / Driver';
 $activePage = 'inv-driver';
 include 'includes/header.php';
