@@ -111,10 +111,13 @@
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
         </div>
     </div>
 </div>
+
+<!-- Dedicated print area (invisible on screen) -->
+<div id="printArea"></div>
 
 <div id="toast" class="toast"></div>
 
@@ -149,6 +152,7 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
+                    <button class="btn-xs btn-xs-print"  onclick="printDrInvoice(${inv.id})">🖨️ Print</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
@@ -245,19 +249,15 @@ function saveDrInvoice(e) {
     if (!did) { toast('Please select a driver.', 'error'); return; }
     if (!drJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
-    const sub  = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee  = sub * 0.1;
-    const date = document.getElementById('drInvDate').value;
+    const sub   = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee   = sub * 0.1;
+    const date  = document.getElementById('drInvDate').value;
     const items = JSON.parse(JSON.stringify(drJobRows));
 
     if (editingDrInvId) {
         const inv = driverInvoices.find(i => i.id === editingDrInvId);
-        inv.driverId   = did;
-        inv.date       = date;
-        inv.lineItems  = items;
-        inv.subtotal   = sub;
-        inv.carrierFee = fee;
-        inv.total      = sub + fee;
+        inv.driverId = did; inv.date = date; inv.lineItems = items;
+        inv.subtotal = sub; inv.carrierFee = fee; inv.total = sub + fee;
         toast('Driver invoice updated!', 'success');
     } else {
         driverInvoices.push({ id: nextDrInvId++, driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
@@ -278,11 +278,11 @@ function deleteDrInvoice(id) {
     toast('Invoice deleted.', 'success');
 }
 
-// ── View / Print ─────────────────────────────
+// ── Build invoice HTML (shared by view + print) ──
 
-function viewDrInvoice(id) {
+function buildDrInvoiceHtml(id) {
     const inv  = driverInvoices.find(i => i.id === id);
-    if (!inv) return;
+    if (!inv) return '';
     const dr   = drivers.find(d => d.id === inv.driverId) || {};
     const jobs = inv.lineItems || [];
     let totalCF = 0, totalAmt = 0, totalBal = 0, totalNewBal = 0;
@@ -310,7 +310,7 @@ function viewDrInvoice(id) {
         </tr>`;
     }).join('');
 
-    document.getElementById('invoiceViewContent').innerHTML = `
+    return `
         <div class="inv-view">
             <div class="inv-view-hdr">
                 <h2>${dr.firstName || ''} ${dr.lastName || ''}</h2>
@@ -346,7 +346,19 @@ function viewDrInvoice(id) {
                 <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
             </div>
         </div>`;
+}
+
+// ── View (opens modal) ────────────────────────
+
+function viewDrInvoice(id) {
+    document.getElementById('invoiceViewContent').innerHTML = buildDrInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
+}
+
+// ── Print directly (no modal needed) ─────────
+
+function printDrInvoice(id) {
+    triggerPrint(buildDrInvoiceHtml(id));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

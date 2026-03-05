@@ -285,13 +285,28 @@ tr:hover { background: var(--bg3); }
     .modal-box { padding: 20px; }
 }
 
+/* ── Print area (hidden on screen, shown only when printing) ── */
+#printArea { display: none; }
+
+.btn-xs-print { background: #7c3aed; color: #fff; }
+.btn-xs-print:hover { background: #6d28d9; }
+
 /* ── Print ── */
 @media print {
-    body, .app-wrapper { background: #fff !important; color: #111 !important; padding: 0 !important; }
-    .header, .nav-tabs, .content, .toast, #modalOverlay { display: none !important; }
-    .modal { position: static !important; background: none !important; display: block !important; padding: 0 !important; }
-    .modal-box { box-shadow: none !important; border: none !important; padding: 0 !important; max-height: none !important; overflow: visible !important; }
-    .modal-hdr .close-btn, .modal-footer { display: none !important; }
+    /* Hide everything */
+    body > *,
+    .app-wrapper,
+    .header, .nav-tabs, .content, .toast,
+    .modal { display: none !important; }
+
+    /* Show only the dedicated print area */
+    #printArea {
+        display: block !important;
+        background: #fff !important;
+        color: #111 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
     .inv-view { padding: 0 !important; }
     @page { margin: 1.5cm; }
 }

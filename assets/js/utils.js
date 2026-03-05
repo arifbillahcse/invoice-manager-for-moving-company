@@ -25,3 +25,12 @@ document.addEventListener('click', e => {
         e.target.classList.remove('active');
     }
 });
+
+// Print a formatted invoice HTML string via the dedicated #printArea
+function triggerPrint(html) {
+    const area = document.getElementById('printArea');
+    if (!area) { window.print(); return; }
+    area.innerHTML = html;
+    window.print();
+    setTimeout(() => { area.innerHTML = ''; }, 800);
+}

@@ -105,10 +105,13 @@
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
         </div>
     </div>
 </div>
+
+<!-- Dedicated print area (invisible on screen) -->
+<div id="printArea"></div>
 
 <div id="toast" class="toast"></div>
 
@@ -117,6 +120,8 @@
 <script>
 let jobRows = [];
 function emptyJob() { return { jobNumber:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
+
+// ── Table render ─────────────────────────────
 
 function renderPage() {
     const tb = document.getElementById('invoicesTbody');
@@ -139,11 +144,14 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewInvoice(${inv.id})">👁️ View</button>
+                    <button class="btn-xs btn-xs-print"  onclick="printInvoice(${inv.id})">🖨️ Print</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
     }).join('');
 }
+
+// ── Create modal ──────────────────────────────
 
 function openInvoiceModal() {
     document.getElementById('invoiceForm').reset();
@@ -178,11 +186,11 @@ function renderJobRows() {
             <input type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setJobField(${i},'customerName',this.value)">
             <input type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setJobField(${i},'from',this.value)">
             <input type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setJobField(${i},'to',this.value)">
-            <input type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setJobField(${i},'cubicFeet',this.value)">
-            <input type="number" placeholder="Rate"     value="${r.rate || ''}" step="0.01" onchange="setJobField(${i},'rate',this.value)">
+            <input type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setJobField(${i},'cubicFeet',this.value)" min="0">
+            <input type="number" placeholder="Rate"     value="${r.rate || ''}" step="0.01" onchange="setJobField(${i},'rate',this.value)" min="0">
             <div class="cell-total">$${total}</div>
-            <input type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  step="0.01" onchange="setJobField(${i},'balanceDue',this.value)">
-            <input type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  step="0.01" onchange="setJobField(${i},'newBalance',this.value)">
+            <input type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  step="0.01" onchange="setJobField(${i},'balanceDue',this.value)" min="0">
+            <input type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  step="0.01" onchange="setJobField(${i},'newBalance',this.value)" min="0">
             <input type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setJobField(${i},'remarks',this.value)">
             ${jobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeJobRow(${i})">&#x2715;</button>`
@@ -226,9 +234,11 @@ function deleteInvoice(id) {
     toast('Invoice deleted.', 'success');
 }
 
-function viewInvoice(id) {
+// ── Invoice HTML builder ──────────────────────
+
+function buildInvoiceHtml(id) {
     const inv = invoices.find(i => i.id === id);
-    if (!inv) return;
+    if (!inv) return '';
     const co   = companies.find(c => c.id === inv.companyId) || {};
     const dr   = drivers.find(d => d.id === inv.driverId)    || {};
     const jobs = inv.lineItems || [];
@@ -246,7 +256,7 @@ function viewInvoice(id) {
             <td>${j.remarks || ''}</td>
         </tr>`).join('');
 
-    document.getElementById('invoiceViewContent').innerHTML = `
+    return `
         <div class="inv-view">
             <div class="inv-view-hdr">
                 <h2>${co.name || 'Company'}</h2>
@@ -276,7 +286,15 @@ function viewInvoice(id) {
                 <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
             </div>
         </div>`;
+}
+
+function viewInvoice(id) {
+    document.getElementById('invoiceViewContent').innerHTML = buildInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
+}
+
+function printInvoice(id) {
+    triggerPrint(buildInvoiceHtml(id));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

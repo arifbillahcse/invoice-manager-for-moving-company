@@ -111,10 +111,13 @@
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-primary" onclick="window.print()">🖨️ Print</button>
+            <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
         </div>
     </div>
 </div>
+
+<!-- Dedicated print area (invisible on screen) -->
+<div id="printArea"></div>
 
 <div id="toast" class="toast"></div>
 
@@ -149,6 +152,7 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
+                    <button class="btn-xs btn-xs-print"  onclick="printCoInvoice(${inv.id})">🖨️ Print</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editCoInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteCoInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
@@ -245,19 +249,15 @@ function saveCoInvoice(e) {
     if (!cid) { toast('Please select a company.', 'error'); return; }
     if (!coJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
-    const sub  = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee  = sub * 0.1;
-    const date = document.getElementById('coInvDate').value;
+    const sub   = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee   = sub * 0.1;
+    const date  = document.getElementById('coInvDate').value;
     const items = JSON.parse(JSON.stringify(coJobRows));
 
     if (editingCoInvId) {
         const inv = companyInvoices.find(i => i.id === editingCoInvId);
-        inv.companyId = cid;
-        inv.date      = date;
-        inv.lineItems = items;
-        inv.subtotal  = sub;
-        inv.carrierFee = fee;
-        inv.total     = sub + fee;
+        inv.companyId = cid; inv.date = date; inv.lineItems = items;
+        inv.subtotal = sub; inv.carrierFee = fee; inv.total = sub + fee;
         toast('Company invoice updated!', 'success');
     } else {
         companyInvoices.push({ id: nextCoInvId++, companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
@@ -278,11 +278,11 @@ function deleteCoInvoice(id) {
     toast('Invoice deleted.', 'success');
 }
 
-// ── View / Print ─────────────────────────────
+// ── Build invoice HTML (shared by view + print) ──
 
-function viewCoInvoice(id) {
+function buildCoInvoiceHtml(id) {
     const inv  = companyInvoices.find(i => i.id === id);
-    if (!inv) return;
+    if (!inv) return '';
     const co   = companies.find(c => c.id === inv.companyId) || {};
     const jobs = inv.lineItems || [];
     let totalCF = 0, totalAmt = 0, totalBal = 0, totalNewBal = 0;
@@ -310,7 +310,7 @@ function viewCoInvoice(id) {
         </tr>`;
     }).join('');
 
-    document.getElementById('invoiceViewContent').innerHTML = `
+    return `
         <div class="inv-view">
             <div class="inv-view-hdr">
                 <h2>${co.name || 'Company'}</h2>
@@ -346,7 +346,19 @@ function viewCoInvoice(id) {
                 <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
             </div>
         </div>`;
+}
+
+// ── View (opens modal) ────────────────────────
+
+function viewCoInvoice(id) {
+    document.getElementById('invoiceViewContent').innerHTML = buildCoInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
+}
+
+// ── Print directly (no modal needed) ─────────
+
+function printCoInvoice(id) {
+    triggerPrint(buildCoInvoiceHtml(id));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
