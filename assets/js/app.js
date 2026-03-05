@@ -22,10 +22,10 @@ const SAMPLE = {
         { id:2, name:'Prime Relocations',  address:'5695 Oakbrook Parkway, Suite D', city:'Norcross, GA 30093',  phone:'(770) 954-7095', dotNumber:'806005',  mcNumber:'358641'  }
     ],
     drivers: [
-        { id:1, companyId:1, firstName:'BAKARY',  lastName:'Diallo',  phone:'(770) 555-0001', license:'DL001' },
-        { id:2, companyId:1, firstName:'JOHN',    lastName:'Doe',     phone:'(770) 555-0002', license:'DL002' },
-        { id:3, companyId:2, firstName:'Joseph',  lastName:'Smith',   phone:'(770) 555-0003', license:'DL003' },
-        { id:4, companyId:2, firstName:'Ahmed',   lastName:'Hassan',  phone:'(404) 555-0004', license:'DL004' }
+        { id:1, firstName:'BAKARY',  lastName:'Diallo',  phone:'(770) 555-0001', license:'DL001' },
+        { id:2, firstName:'JOHN',    lastName:'Doe',     phone:'(770) 555-0002', license:'DL002' },
+        { id:3, firstName:'Joseph',  lastName:'Smith',   phone:'(770) 555-0003', license:'DL003' },
+        { id:4, firstName:'Ahmed',   lastName:'Hassan',  phone:'(404) 555-0004', license:'DL004' }
     ],
     invoices: [
         {
@@ -44,9 +44,17 @@ const SAMPLE = {
                 { jobNumber:'P002', customerName:'Johnson',  from:'Atlanta, GA',  to:'Houston, TX', cubicFeet:2100, rate:0.60, balanceDue:450, newBalance:0,   remarks:''              }
             ],
             subtotal:2085, carrierFee:208.5, total:2293.5
+        },
+        {
+            id:3, companyId:1, driverId:2, date:'2026-03-04',
+            lineItems: [
+                { jobNumber:'J004', customerName:'Carter',   from:'Marietta, GA', to:'Nashville, TN', cubicFeet:600,  rate:1.50, balanceDue:200, newBalance:0,   remarks:'' },
+                { jobNumber:'J005', customerName:'Rivera',   from:'Atlanta, GA',  to:'Charlotte, NC', cubicFeet:950,  rate:1.75, balanceDue:0,   newBalance:0,   remarks:'Fully paid' }
+            ],
+            subtotal:2562.5, carrierFee:256.25, total:2818.75
         }
     ],
-    nextCompanyId: 3, nextDriverId: 5, nextInvoiceId: 3
+    nextCompanyId: 3, nextDriverId: 5, nextInvoiceId: 4
 };
 
 // ═══════════════════════════════════════════
@@ -111,7 +119,8 @@ function switchTab(name, btn) {
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
     document.getElementById(name).classList.add('active');
     (btn || document.querySelector(`[data-tab="${name}"]`))?.classList.add('active');
-    if (name === 'manifest') populateManifestCompanies();
+    if (name === 'inv-company') populateCompanyInvoiceSelect();
+    if (name === 'inv-driver')  populateDriverInvoiceSelect();
 }
 
 // ═══════════════════════════════════════════
@@ -123,7 +132,6 @@ function renderAll() {
     renderCompanies();
     renderDrivers();
     renderInvoices();
-    populateManifestCompanies();
 }
 
 // ═══════════════════════════════════════════
@@ -225,7 +233,7 @@ function saveCompany(e) {
 }
 
 function deleteCompany(id) {
-    if (!confirm('Delete this company? Associated drivers and invoices will still exist.')) return;
+    if (!confirm('Delete this company? Associated invoices will still exist.')) return;
     companies = companies.filter(c => c.id !== id);
     save(); renderCompanies(); renderDashboard();
     toast('Company deleted.', 'success');
@@ -238,23 +246,19 @@ function deleteCompany(id) {
 function renderDrivers() {
     const tb = document.getElementById('driversTbody');
     if (!drivers.length) {
-        tb.innerHTML = '<tr><td colspan="5" class="empty">No drivers yet. Click "+ Add Driver" to start.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="4" class="empty">No drivers yet. Click "+ Add Driver" to start.</td></tr>';
         return;
     }
-    tb.innerHTML = drivers.map(d => {
-        const co = companies.find(c => c.id === d.companyId);
-        return `
-            <tr>
-                <td><strong>${d.firstName} ${d.lastName}</strong></td>
-                <td>${co?.name || '—'}</td>
-                <td>${d.phone || '—'}</td>
-                <td>${d.license || '—'}</td>
-                <td><div class="action-btns">
-                    <button class="btn-xs btn-xs-edit"   onclick="openDriverModal(${d.id})">✏️ Edit</button>
-                    <button class="btn-xs btn-xs-delete" onclick="deleteDriver(${d.id})">🗑️ Delete</button>
-                </div></td>
-            </tr>`;
-    }).join('');
+    tb.innerHTML = drivers.map(d => `
+        <tr>
+            <td><strong>${d.firstName} ${d.lastName}</strong></td>
+            <td>${d.phone || '—'}</td>
+            <td>${d.license || '—'}</td>
+            <td><div class="action-btns">
+                <button class="btn-xs btn-xs-edit"   onclick="openDriverModal(${d.id})">✏️ Edit</button>
+                <button class="btn-xs btn-xs-delete" onclick="deleteDriver(${d.id})">🗑️ Delete</button>
+            </div></td>
+        </tr>`).join('');
 }
 
 function openDriverModal(id) {
@@ -264,20 +268,14 @@ function openDriverModal(id) {
     document.getElementById('driverModalTitle').textContent = 'Add Driver';
     document.getElementById('driverSubmitBtn').textContent  = 'Save Driver';
 
-    // Populate company dropdown
-    const sel = document.getElementById('driverCompany');
-    sel.innerHTML = '<option value="">-- Select Company --</option>' +
-        companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-
     if (id) {
         const d = drivers.find(x => x.id === id);
         if (!d) return;
-        document.getElementById('editDriverId').value      = id;
-        document.getElementById('driverCompany').value     = d.companyId;
-        document.getElementById('driverFirstName').value   = d.firstName;
-        document.getElementById('driverLastName').value    = d.lastName;
-        document.getElementById('driverPhone').value       = d.phone    || '';
-        document.getElementById('driverLicense').value     = d.license  || '';
+        document.getElementById('editDriverId').value    = id;
+        document.getElementById('driverFirstName').value = d.firstName;
+        document.getElementById('driverLastName').value  = d.lastName;
+        document.getElementById('driverPhone').value     = d.phone    || '';
+        document.getElementById('driverLicense').value   = d.license  || '';
         document.getElementById('driverModalTitle').textContent = 'Edit Driver';
         document.getElementById('driverSubmitBtn').textContent  = 'Update Driver';
     }
@@ -288,7 +286,6 @@ function saveDriver(e) {
     e.preventDefault();
     const editId = parseInt(document.getElementById('editDriverId').value) || null;
     const data = {
-        companyId: parseInt(document.getElementById('driverCompany').value),
         firstName: document.getElementById('driverFirstName').value.trim(),
         lastName:  document.getElementById('driverLastName').value.trim(),
         phone:     document.getElementById('driverPhone').value.trim(),
@@ -347,23 +344,19 @@ function openInvoiceModal() {
     document.getElementById('invoiceForm').reset();
     document.getElementById('invoiceDate').valueAsDate = new Date();
 
-    // Populate company dropdown
-    const sel = document.getElementById('invoiceCompany');
-    sel.innerHTML = '<option value="">-- Select Company --</option>' +
+    // Company dropdown — all companies
+    document.getElementById('invoiceCompany').innerHTML =
+        '<option value="">-- Select Company --</option>' +
         companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    document.getElementById('invoiceDriver').innerHTML = '<option value="">-- Select Company first --</option>';
+
+    // Driver dropdown — all drivers (independent, not filtered by company)
+    document.getElementById('invoiceDriver').innerHTML =
+        '<option value="">-- Select Driver --</option>' +
+        drivers.map(d => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
 
     jobRows = [emptyJob()];
     renderJobRows();
     document.getElementById('invoiceModal').classList.add('active');
-}
-
-function onInvoiceCompanyChange() {
-    const cid = parseInt(document.getElementById('invoiceCompany').value);
-    const sel  = document.getElementById('invoiceDriver');
-    const list = drivers.filter(d => d.companyId === cid);
-    sel.innerHTML = '<option value="">-- Select Driver --</option>' +
-        list.map(d => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
 }
 
 function addJobRow() {
@@ -380,7 +373,7 @@ function removeJobRow(idx) {
 function setJobField(idx, field, val) {
     const num = ['cubicFeet','rate','balanceDue','newBalance'];
     jobRows[idx][field] = num.includes(field) ? (parseFloat(val) || 0) : val;
-    if (field === 'cubicFeet' || field === 'rate') renderJobRows(); // refresh total cell
+    if (field === 'cubicFeet' || field === 'rate') renderJobRows();
     else updateInvSummary();
 }
 
@@ -526,54 +519,49 @@ function viewInvoice(id) {
 }
 
 // ═══════════════════════════════════════════
-// MANIFEST
+// INVOICE FOR COMPANY TAB
 // ═══════════════════════════════════════════
 
-function populateManifestCompanies() {
-    const sel = document.getElementById('manifestCompany');
+const TH = 'style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;text-align:left;"';
+const TD = 'style="border:1px solid #bbb;padding:8px;vertical-align:top;"';
+
+function populateCompanyInvoiceSelect() {
+    const sel = document.getElementById('icCompanySelect');
     const cur = sel.value;
     sel.innerHTML = '<option value="">-- Select Company --</option>' +
         companies.map(c => `<option value="${c.id}" ${c.id == cur ? 'selected' : ''}>${c.name}</option>`).join('');
-    if (cur) onManifestCompanyChange();
+    if (cur) renderCompanyInvoice();
 }
 
-function onManifestCompanyChange() {
-    const cid = parseInt(document.getElementById('manifestCompany').value);
-    const sel  = document.getElementById('manifestDriver');
-    sel.innerHTML = '<option value="">-- Select Driver --</option>' +
-        drivers.filter(d => d.companyId === cid)
-               .map(d => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
-    document.getElementById('manifestContainer').innerHTML =
-        '<div class="empty"><div class="empty-icon">📑</div><p>Now select a driver</p></div>';
-}
+function renderCompanyInvoice() {
+    const cid = parseInt(document.getElementById('icCompanySelect').value);
+    const el  = document.getElementById('icContainer');
 
-function generateManifest() {
-    const cid = parseInt(document.getElementById('manifestCompany').value);
-    const did = parseInt(document.getElementById('manifestDriver').value);
-    const el  = document.getElementById('manifestContainer');
-
-    if (!cid || !did) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📑</div><p>Select company and driver</p></div>';
+    if (!cid) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🏢</div><p>Select a company to view their invoice</p></div>';
         return;
     }
 
     const co = companies.find(c => c.id === cid);
-    const dr = drivers.find(d => d.id === did);
-    const driverInvoices = invoices.filter(i => i.companyId === cid && i.driverId === did);
+    const coInvoices = invoices.filter(i => i.companyId === cid);
 
-    if (!driverInvoices.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No invoices found for this driver under this company</p></div>';
+    if (!coInvoices.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📄</div><p>No invoices found for this company</p></div>';
         return;
     }
 
+    // Collect all job rows with driver name
     const allJobs = [];
-    let totalCF = 0, totalAmt = 0, totalBal = 0;
-    driverInvoices.forEach(inv => {
+    let totalCF = 0, totalAmt = 0, totalBal = 0, totalNewBal = 0;
+    coInvoices.forEach(inv => {
+        const dr = drivers.find(d => d.id === inv.driverId) || {};
+        const driverName = dr.firstName ? `${dr.firstName} ${dr.lastName}` : '—';
         (inv.lineItems || []).forEach(j => {
-            allJobs.push({ ...j, invoiceId: inv.id, date: inv.date });
-            totalCF  += (j.cubicFeet || 0);
-            totalAmt += (j.cubicFeet || 0) * (j.rate || 0);
-            totalBal += (j.balanceDue || 0);
+            allJobs.push({ ...j, driverName });
+            totalCF     += (j.cubicFeet || 0);
+            totalAmt    += (j.cubicFeet || 0) * (j.rate || 0);
+            totalBal    += (j.balanceDue || 0);
+            totalNewBal += (j.newBalance || 0);
         });
     });
 
@@ -586,53 +574,159 @@ function generateManifest() {
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #ddd;">
-                <div>
-                    <div><strong>Driver:</strong> ${dr.firstName} ${dr.lastName}</div>
-                    <div><strong>Phone:</strong> ${dr.phone || '—'}</div>
-                </div>
-                <div>
-                    <div><strong>Date Generated:</strong> ${new Date().toLocaleDateString()}</div>
-                    <div><strong>Total Invoices:</strong> ${driverInvoices.length}</div>
-                </div>
+                <div><strong>Date Generated:</strong> ${new Date().toLocaleDateString()}</div>
+                <div><strong>Total Invoices:</strong> ${coInvoices.length} &nbsp;&nbsp; <strong>Total Jobs:</strong> ${allJobs.length}</div>
             </div>
 
             <div style="overflow-x:auto;">
             <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px;">
                 <thead>
                     <tr>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Job #</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Customer</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">From</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">To</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">CF</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Rate</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Total</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Bal. Due</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">New Balance</th>
-                        <th style="background:#1e293b;color:#fff;padding:9px 8px;border:1px solid #555;white-space:nowrap;">Remarks</th>
+                        <th ${TH}>Job #</th>
+                        <th ${TH}>Driver</th>
+                        <th ${TH}>Customer</th>
+                        <th ${TH}>From</th>
+                        <th ${TH}>To</th>
+                        <th ${TH}>CF</th>
+                        <th ${TH}>Rate</th>
+                        <th ${TH}>Total</th>
+                        <th ${TH}>Bal. Due</th>
+                        <th ${TH}>New Bal.</th>
+                        <th ${TH}>Remarks</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${allJobs.map((j, i) => `
                     <tr style="${i % 2 === 1 ? 'background:#f5f8ff;' : ''}">
-                        <td style="border:1px solid #bbb;padding:8px;">${j.jobNumber || ''}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${j.customerName || ''}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${j.from || ''}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${j.to || ''}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${j.cubicFeet || 0}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">$${parseFloat(j.rate || 0).toFixed(2)}</td>
-                        <td style="border:1px solid #bbb;padding:8px;font-weight:bold;">$${((j.cubicFeet || 0) * (j.rate || 0)).toFixed(2)}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">$${parseFloat(j.balanceDue || 0).toFixed(2)}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">$${parseFloat(j.newBalance || 0).toFixed(2)}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${j.remarks || ''}</td>
+                        <td ${TD}>${j.jobNumber || ''}</td>
+                        <td ${TD}>${j.driverName}</td>
+                        <td ${TD}>${j.customerName || ''}</td>
+                        <td ${TD}>${j.from || ''}</td>
+                        <td ${TD}>${j.to || ''}</td>
+                        <td ${TD}>${j.cubicFeet || 0}</td>
+                        <td ${TD}>$${parseFloat(j.rate || 0).toFixed(2)}</td>
+                        <td ${TD} style="border:1px solid #bbb;padding:8px;font-weight:bold;">$${((j.cubicFeet || 0) * (j.rate || 0)).toFixed(2)}</td>
+                        <td ${TD}>$${parseFloat(j.balanceDue || 0).toFixed(2)}</td>
+                        <td ${TD}>$${parseFloat(j.newBalance || 0).toFixed(2)}</td>
+                        <td ${TD}>${j.remarks || ''}</td>
                     </tr>`).join('')}
                     <tr style="background:#e8edf5;font-weight:bold;border-top:2px solid #333;">
-                        <td colspan="4" style="border:1px solid #bbb;padding:8px;">TOTALS</td>
-                        <td style="border:1px solid #bbb;padding:8px;">${totalCF}</td>
-                        <td style="border:1px solid #bbb;padding:8px;"></td>
-                        <td style="border:1px solid #bbb;padding:8px;">$${totalAmt.toFixed(2)}</td>
-                        <td style="border:1px solid #bbb;padding:8px;">$${totalBal.toFixed(2)}</td>
-                        <td colspan="2" style="border:1px solid #bbb;padding:8px;"></td>
+                        <td colspan="5" ${TD}><strong>TOTALS</strong></td>
+                        <td ${TD}><strong>${totalCF}</strong></td>
+                        <td ${TD}></td>
+                        <td ${TD}><strong>$${totalAmt.toFixed(2)}</strong></td>
+                        <td ${TD}><strong>$${totalBal.toFixed(2)}</strong></td>
+                        <td ${TD}><strong>$${totalNewBal.toFixed(2)}</strong></td>
+                        <td ${TD}></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+
+            <div style="display:flex;gap:50px;margin-top:40px;">
+                <div style="flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Authorized Signature</div>
+                <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
+            </div>
+        </div>`;
+}
+
+// ═══════════════════════════════════════════
+// INVOICE FOR DRIVER TAB
+// ═══════════════════════════════════════════
+
+function populateDriverInvoiceSelect() {
+    const sel = document.getElementById('idDriverSelect');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- Select Driver --</option>' +
+        drivers.map(d => `<option value="${d.id}" ${d.id == cur ? 'selected' : ''}>${d.firstName} ${d.lastName}</option>`).join('');
+    if (cur) renderDriverInvoice();
+}
+
+function renderDriverInvoice() {
+    const did = parseInt(document.getElementById('idDriverSelect').value);
+    const el  = document.getElementById('idContainer');
+
+    if (!did) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">🚗</div><p>Select a driver to view their invoice</p></div>';
+        return;
+    }
+
+    const dr = drivers.find(d => d.id === did);
+    const driverInvoices = invoices.filter(i => i.driverId === did);
+
+    if (!driverInvoices.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📄</div><p>No invoices found for this driver</p></div>';
+        return;
+    }
+
+    // Collect all job rows with company name
+    const allJobs = [];
+    let totalCF = 0, totalAmt = 0, totalBal = 0, totalNewBal = 0;
+    driverInvoices.forEach(inv => {
+        const co = companies.find(c => c.id === inv.companyId) || {};
+        const companyName = co.name || '—';
+        (inv.lineItems || []).forEach(j => {
+            allJobs.push({ ...j, companyName });
+            totalCF     += (j.cubicFeet || 0);
+            totalAmt    += (j.cubicFeet || 0) * (j.rate || 0);
+            totalBal    += (j.balanceDue || 0);
+            totalNewBal += (j.newBalance || 0);
+        });
+    });
+
+    el.innerHTML = `
+        <div class="manifest-display" style="background:#fff;color:#111;padding:28px;border-radius:8px;border:2px solid #333;">
+            <div style="text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;">
+                <div style="font-size:26px;font-weight:bold;text-transform:uppercase;letter-spacing:.04em;">${dr.firstName} ${dr.lastName}</div>
+                <div style="font-size:12px;color:#444;margin-top:4px;">Driver Statement</div>
+                <div style="font-size:12px;color:#444;margin-top:2px;">Phone: <strong>${dr.phone || '—'}</strong> &nbsp;&nbsp; License: <strong>${dr.license || '—'}</strong></div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #ddd;">
+                <div><strong>Date Generated:</strong> ${new Date().toLocaleDateString()}</div>
+                <div><strong>Total Invoices:</strong> ${driverInvoices.length} &nbsp;&nbsp; <strong>Total Jobs:</strong> ${allJobs.length}</div>
+            </div>
+
+            <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px;">
+                <thead>
+                    <tr>
+                        <th ${TH}>Job #</th>
+                        <th ${TH}>Company</th>
+                        <th ${TH}>Customer</th>
+                        <th ${TH}>From</th>
+                        <th ${TH}>To</th>
+                        <th ${TH}>CF</th>
+                        <th ${TH}>Rate</th>
+                        <th ${TH}>Total</th>
+                        <th ${TH}>Bal. Due</th>
+                        <th ${TH}>New Bal.</th>
+                        <th ${TH}>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${allJobs.map((j, i) => `
+                    <tr style="${i % 2 === 1 ? 'background:#f5f8ff;' : ''}">
+                        <td ${TD}>${j.jobNumber || ''}</td>
+                        <td ${TD}>${j.companyName}</td>
+                        <td ${TD}>${j.customerName || ''}</td>
+                        <td ${TD}>${j.from || ''}</td>
+                        <td ${TD}>${j.to || ''}</td>
+                        <td ${TD}>${j.cubicFeet || 0}</td>
+                        <td ${TD}>$${parseFloat(j.rate || 0).toFixed(2)}</td>
+                        <td ${TD} style="border:1px solid #bbb;padding:8px;font-weight:bold;">$${((j.cubicFeet || 0) * (j.rate || 0)).toFixed(2)}</td>
+                        <td ${TD}>$${parseFloat(j.balanceDue || 0).toFixed(2)}</td>
+                        <td ${TD}>$${parseFloat(j.newBalance || 0).toFixed(2)}</td>
+                        <td ${TD}>${j.remarks || ''}</td>
+                    </tr>`).join('')}
+                    <tr style="background:#e8edf5;font-weight:bold;border-top:2px solid #333;">
+                        <td colspan="5" ${TD}><strong>TOTALS</strong></td>
+                        <td ${TD}><strong>${totalCF}</strong></td>
+                        <td ${TD}></td>
+                        <td ${TD}><strong>$${totalAmt.toFixed(2)}</strong></td>
+                        <td ${TD}><strong>$${totalBal.toFixed(2)}</strong></td>
+                        <td ${TD}><strong>$${totalNewBal.toFixed(2)}</strong></td>
+                        <td ${TD}></td>
                     </tr>
                 </tbody>
             </table>

@@ -13,7 +13,7 @@
     <div class="header">
         <div>
             <h1>📋 Invoice Management System</h1>
-            <p>Manage companies, drivers, and generate job manifests</p>
+            <p>Manage companies, drivers, and generate invoices</p>
         </div>
         <div class="header-actions">
             <button class="btn btn-amber" onclick="loadSampleData()">🔄 Load Sample Data</button>
@@ -27,7 +27,8 @@
         <button class="nav-tab" data-tab="companies">🏢 Companies</button>
         <button class="nav-tab" data-tab="drivers">🚗 Drivers</button>
         <button class="nav-tab" data-tab="invoices">📄 Invoices</button>
-        <button class="nav-tab" data-tab="manifest">📑 Manifest</button>
+        <button class="nav-tab" data-tab="inv-company">🏢 Invoice / Company</button>
+        <button class="nav-tab" data-tab="inv-driver">🚗 Invoice / Driver</button>
     </div>
 
     <!-- Content -->
@@ -68,7 +69,7 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>Full Name</th><th>Company</th><th>Phone</th><th>License #</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Full Name</th><th>Phone</th><th>License #</th><th>Actions</th></tr></thead>
                     <tbody id="driversTbody"></tbody>
                 </table>
             </div>
@@ -88,26 +89,37 @@
             </div>
         </div>
 
-        <!-- MANIFEST -->
-        <div id="manifest" class="tab-content">
-            <h2 style="margin-bottom:20px;">Delivery Manifest</h2>
+        <!-- INVOICE FOR COMPANY -->
+        <div id="inv-company" class="tab-content">
+            <h2 style="margin-bottom:20px;">Invoice for Company</h2>
             <div class="manifest-controls">
                 <div class="form-group">
-                    <label>Company</label>
-                    <select id="manifestCompany" onchange="onManifestCompanyChange()">
+                    <label>Select Company</label>
+                    <select id="icCompanySelect" onchange="renderCompanyInvoice()">
                         <option value="">-- Select Company --</option>
                     </select>
                 </div>
+                <button class="btn btn-primary" onclick="window.print()" style="white-space:nowrap;">🖨️ Print / PDF</button>
+            </div>
+            <div id="icContainer">
+                <div class="empty"><div class="empty-icon">🏢</div><p>Select a company to view their invoice</p></div>
+            </div>
+        </div>
+
+        <!-- INVOICE FOR DRIVER -->
+        <div id="inv-driver" class="tab-content">
+            <h2 style="margin-bottom:20px;">Invoice for Driver</h2>
+            <div class="manifest-controls">
                 <div class="form-group">
-                    <label>Driver</label>
-                    <select id="manifestDriver" onchange="generateManifest()">
+                    <label>Select Driver</label>
+                    <select id="idDriverSelect" onchange="renderDriverInvoice()">
                         <option value="">-- Select Driver --</option>
                     </select>
                 </div>
                 <button class="btn btn-primary" onclick="window.print()" style="white-space:nowrap;">🖨️ Print / PDF</button>
             </div>
-            <div id="manifestContainer">
-                <div class="empty"><div class="empty-icon">📑</div><p>Select a company and driver to view the manifest</p></div>
+            <div id="idContainer">
+                <div class="empty"><div class="empty-icon">🚗</div><p>Select a driver to view their invoice</p></div>
             </div>
         </div>
 
@@ -154,12 +166,6 @@
         </div>
         <form id="driverForm" onsubmit="saveDriver(event)">
             <input type="hidden" id="editDriverId">
-            <div class="form-group" style="margin-bottom:18px;">
-                <label>Company *</label>
-                <select id="driverCompany" required>
-                    <option value="">-- Select Company --</option>
-                </select>
-            </div>
             <div class="form-grid">
                 <div class="form-group"><label>First Name *</label><input type="text" id="driverFirstName" required placeholder="First name"></div>
                 <div class="form-group"><label>Last Name *</label><input type="text" id="driverLastName" required placeholder="Last name"></div>
@@ -187,7 +193,7 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>Company *</label>
-                    <select id="invoiceCompany" onchange="onInvoiceCompanyChange()" required>
+                    <select id="invoiceCompany" required>
                         <option value="">-- Select Company --</option>
                     </select>
                 </div>
