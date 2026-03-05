@@ -46,13 +46,20 @@ include 'includes/header.php';
 <?php include 'includes/footer.php'; ?>
 
 <script>
+const PAGE_SIZE = 30;
+let currentPage = 1;
+
 function renderPage() {
     const tb = document.getElementById('driversTbody');
     if (!drivers.length) {
         tb.innerHTML = '<tr><td colspan="4" class="empty">No drivers yet. Click "+ Add Driver" to start.</td></tr>';
+        renderPagination('driversPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    tb.innerHTML = drivers.map(d => `
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(drivers.length / PAGE_SIZE)));
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const pageData = drivers.slice(start, start + PAGE_SIZE);
+    tb.innerHTML = pageData.map(d => `
         <tr>
             <td><strong>${d.firstName} ${d.lastName}</strong></td>
             <td>${d.phone || '—'}</td>
@@ -62,6 +69,10 @@ function renderPage() {
                 <button class="btn-xs btn-xs-delete" onclick="deleteDriver(${d.id})">🗑️ Delete</button>
             </div></td>
         </tr>`).join('');
+    renderPagination('driversPagination', drivers.length, currentPage, PAGE_SIZE, p => {
+        currentPage = p;
+        renderPage();
+    });
 }
 
 function openDriverModal(id) {

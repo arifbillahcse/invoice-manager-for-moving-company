@@ -16,6 +16,7 @@ include 'includes/header.php';
                 <tbody id="drInvTbody"></tbody>
             </table>
         </div>
+        <div id="drInvPagination" class="pagination-wrap"></div>
     </div>
 
 <!-- Create / Edit Driver Invoice Modal -->
@@ -103,13 +104,20 @@ function emptyDrJob() {
 
 // ── Table render ─────────────────────────────
 
+const PAGE_SIZE = 30;
+let currentPage = 1;
+
 function renderPage() {
     const tb = document.getElementById('drInvTbody');
     if (!driverInvoices.length) {
         tb.innerHTML = '<tr><td colspan="7" class="empty">No driver invoices yet. Click "+ Create Invoice" to start.</td></tr>';
+        renderPagination('drInvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    tb.innerHTML = driverInvoices.map(inv => {
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(driverInvoices.length / PAGE_SIZE)));
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const pageData = driverInvoices.slice(start, start + PAGE_SIZE);
+    tb.innerHTML = pageData.map(inv => {
         const dr = drivers.find(d => d.id === inv.driverId);
         const n  = (inv.lineItems || []).length;
         return `
@@ -128,6 +136,10 @@ function renderPage() {
                 </div></td>
             </tr>`;
     }).join('');
+    renderPagination('drInvPagination', driverInvoices.length, currentPage, PAGE_SIZE, p => {
+        currentPage = p;
+        renderPage();
+    });
 }
 
 // ── Open modal (create) ──────────────────────

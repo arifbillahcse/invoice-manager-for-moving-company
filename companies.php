@@ -50,13 +50,20 @@ include 'includes/header.php';
 <?php include 'includes/footer.php'; ?>
 
 <script>
+const PAGE_SIZE = 30;
+let currentPage = 1;
+
 function renderPage() {
     const tb = document.getElementById('companiesTbody');
     if (!companies.length) {
         tb.innerHTML = '<tr><td colspan="7" class="empty">No companies yet. Click "+ Add Company" to start.</td></tr>';
+        renderPagination('companiesPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    tb.innerHTML = companies.map(c => `
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(companies.length / PAGE_SIZE)));
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const pageData = companies.slice(start, start + PAGE_SIZE);
+    tb.innerHTML = pageData.map(c => `
         <tr>
             <td><strong>${c.name}</strong></td>
             <td>${c.address || '—'}</td>
@@ -69,6 +76,10 @@ function renderPage() {
                 <button class="btn-xs btn-xs-delete" onclick="deleteCompany(${c.id})">🗑️ Delete</button>
             </div></td>
         </tr>`).join('');
+    renderPagination('companiesPagination', companies.length, currentPage, PAGE_SIZE, p => {
+        currentPage = p;
+        renderPage();
+    });
 }
 
 function openCompanyModal(id) {

@@ -16,6 +16,7 @@ include 'includes/header.php';
                 <tbody id="coInvTbody"></tbody>
             </table>
         </div>
+        <div id="coInvPagination" class="pagination-wrap"></div>
     </div>
 
 <!-- Create / Edit Company Invoice Modal -->
@@ -103,13 +104,20 @@ function emptyCoJob() {
 
 // ── Table render ─────────────────────────────
 
+const PAGE_SIZE = 30;
+let currentPage = 1;
+
 function renderPage() {
     const tb = document.getElementById('coInvTbody');
     if (!companyInvoices.length) {
         tb.innerHTML = '<tr><td colspan="7" class="empty">No company invoices yet. Click "+ Create Invoice" to start.</td></tr>';
+        renderPagination('coInvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    tb.innerHTML = companyInvoices.map(inv => {
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(companyInvoices.length / PAGE_SIZE)));
+    const start    = (currentPage - 1) * PAGE_SIZE;
+    const pageData = companyInvoices.slice(start, start + PAGE_SIZE);
+    tb.innerHTML = pageData.map(inv => {
         const co = companies.find(c => c.id === inv.companyId);
         const n  = (inv.lineItems || []).length;
         return `
@@ -128,6 +136,10 @@ function renderPage() {
                 </div></td>
             </tr>`;
     }).join('');
+    renderPagination('coInvPagination', companyInvoices.length, currentPage, PAGE_SIZE, p => {
+        currentPage = p;
+        renderPage();
+    });
 }
 
 // ── Open modal (create) ──────────────────────
