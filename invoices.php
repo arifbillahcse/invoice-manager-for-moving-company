@@ -79,17 +79,16 @@ include 'includes/header.php';
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
             <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
+            <button class="btn btn-success" onclick="downloadPdf(document.getElementById('invoiceViewContent').innerHTML,'invoice-'+currentViewId)">📥 Download PDF</button>
         </div>
     </div>
 </div>
-
-<!-- Dedicated print area (invisible on screen) -->
-<div id="printArea"></div>
 
 <?php include 'includes/footer.php'; ?>
 
 <script>
 let jobRows = [];
+let currentViewId = null;
 function emptyJob() { return { jobNumber:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
 
 // ── Table render ─────────────────────────────
@@ -116,6 +115,7 @@ function renderPage() {
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-print"  onclick="printInvoice(${inv.id})">🖨️ Print</button>
+                    <button class="btn-xs btn-xs-pdf"    onclick="downloadPdf(buildInvoiceHtml(${inv.id}),'invoice-${inv.id}')">📥 PDF</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
@@ -260,6 +260,7 @@ function buildInvoiceHtml(id) {
 }
 
 function viewInvoice(id) {
+    currentViewId = id;
     document.getElementById('invoiceViewContent').innerHTML = buildInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
 }

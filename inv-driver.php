@@ -85,18 +85,17 @@ include 'includes/header.php';
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
             <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
+            <button class="btn btn-success" onclick="downloadPdf(document.getElementById('invoiceViewContent').innerHTML,'dr-invoice-'+currentViewId)">📥 Download PDF</button>
         </div>
     </div>
 </div>
-
-<!-- Dedicated print area (invisible on screen) -->
-<div id="printArea"></div>
 
 <?php include 'includes/footer.php'; ?>
 
 <script>
 let drJobRows      = [];
 let editingDrInvId = null;
+let currentViewId  = null;
 
 function emptyDrJob() {
     return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
@@ -124,6 +123,7 @@ function renderPage() {
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-print"  onclick="printDrInvoice(${inv.id})">🖨️ Print</button>
+                    <button class="btn-xs btn-xs-pdf"    onclick="downloadPdf(buildDrInvoiceHtml(${inv.id}),'dr-invoice-${inv.id}')">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
@@ -322,6 +322,7 @@ function buildDrInvoiceHtml(id) {
 // ── View (opens modal) ────────────────────────
 
 function viewDrInvoice(id) {
+    currentViewId = id;
     document.getElementById('invoiceViewContent').innerHTML = buildDrInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
 }

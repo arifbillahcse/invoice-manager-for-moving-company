@@ -85,18 +85,17 @@ include 'includes/header.php';
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
             <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
+            <button class="btn btn-success" onclick="downloadPdf(document.getElementById('invoiceViewContent').innerHTML,'co-invoice-'+currentViewId)">📥 Download PDF</button>
         </div>
     </div>
 </div>
-
-<!-- Dedicated print area (invisible on screen) -->
-<div id="printArea"></div>
 
 <?php include 'includes/footer.php'; ?>
 
 <script>
 let coJobRows      = [];
 let editingCoInvId = null;
+let currentViewId  = null;
 
 function emptyCoJob() {
     return { jobNumber:'', driverId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
@@ -124,6 +123,7 @@ function renderPage() {
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-print"  onclick="printCoInvoice(${inv.id})">🖨️ Print</button>
+                    <button class="btn-xs btn-xs-pdf"    onclick="downloadPdf(buildCoInvoiceHtml(${inv.id}),'co-invoice-${inv.id}')">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editCoInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteCoInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
@@ -322,6 +322,7 @@ function buildCoInvoiceHtml(id) {
 // ── View (opens modal) ────────────────────────
 
 function viewCoInvoice(id) {
+    currentViewId = id;
     document.getElementById('invoiceViewContent').innerHTML = buildCoInvoiceHtml(id);
     document.getElementById('invoiceViewModal').classList.add('active');
 }
