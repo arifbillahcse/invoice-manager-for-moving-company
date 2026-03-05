@@ -16,6 +16,7 @@ include 'includes/header.php';
                 <tbody id="companiesTbody"></tbody>
             </table>
         </div>
+        <div id="companiesPagination" class="pagination-wrap"></div>
     </div>
 
 <!-- Company Modal -->

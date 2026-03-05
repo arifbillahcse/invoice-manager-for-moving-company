@@ -16,6 +16,7 @@ include 'includes/header.php';
                 <tbody id="driversTbody"></tbody>
             </table>
         </div>
+        <div id="driversPagination" class="pagination-wrap"></div>
     </div>
 
 <!-- Driver Modal -->
