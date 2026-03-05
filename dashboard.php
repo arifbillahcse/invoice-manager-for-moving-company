@@ -21,10 +21,11 @@ include 'includes/header.php';
 
 <script>
 function renderPage() {
+    // Sort by date desc — IDs are from separate tables so must NOT be compared across CI/DI
     const allInvoices = [
         ...companyInvoices.map(i => ({ ...i, _type: 'CI' })),
         ...driverInvoices.map(i  => ({ ...i, _type: 'DI' })),
-    ].sort((a, b) => b.id - a.id);
+    ].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
     const totalRevenue = allInvoices.reduce((s, i) => s + (i.total || 0), 0);
 
@@ -42,18 +43,22 @@ function renderPage() {
     el.innerHTML = allInvoices.slice(0, 6).map(inv => {
         const jobs      = (inv.lineItems || []).length;
         const customers = [...new Set((inv.lineItems || []).map(j => j.customerName).filter(Boolean))].join(', ') || '—';
-        let title;
+        let badge, name;
         if (inv._type === 'CI') {
             const co = companies.find(c => c.id === inv.companyId);
-            title = `CI-${inv.id} &mdash; Company: ${co?.name || '?'}`;
+            badge = `<span style="background:#1d4ed8;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;margin-right:8px;">CI-${inv.id}</span>`;
+            name  = co ? esc(co.name) : `Company #${inv.companyId}`;
         } else {
             const dr = drivers.find(d => d.id === inv.driverId);
-            title = `DI-${inv.id} &mdash; Driver: ${dr ? dr.firstName + ' ' + dr.lastName : '?'}`;
+            badge = `<span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:12px;margin-right:8px;">DI-${inv.id}</span>`;
+            name  = dr ? esc(dr.firstName + ' ' + dr.lastName) : `Driver #${inv.driverId}`;
         }
         return `
             <div class="activity-item">
-                <div class="activity-title">${title}</div>
-                <div class="activity-details">${jobs} job(s) &nbsp;|&nbsp; Customers: ${customers} &nbsp;|&nbsp; Total: $${(inv.total || 0).toFixed(2)} &nbsp;|&nbsp; ${inv.date}</div>
+                <div class="activity-title">${badge}${name}</div>
+                <div class="activity-details">
+                    ${jobs} job(s) &nbsp;|&nbsp; Customers: ${esc(customers)} &nbsp;|&nbsp; Total: <strong>$${(inv.total || 0).toFixed(2)}</strong> &nbsp;|&nbsp; Date: ${inv.date}
+                </div>
             </div>`;
     }).join('');
 }
