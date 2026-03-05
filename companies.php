@@ -1,33 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Companies - Invoice Management System</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-<div class="app-wrapper">
-
-    <div class="header">
-        <div>
-            <h1>📋 Invoice Management System</h1>
-            <p>Manage companies, drivers, and generate invoices</p>
-        </div>
-        <div class="header-actions">
-            <button class="btn btn-amber" onclick="loadSampleData()">🔄 Load Sample Data</button>
-            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
-        </div>
-    </div>
-
-    <div class="nav-tabs">
-        <a class="nav-tab" href="dashboard.html">📊 Dashboard</a>
-        <a class="nav-tab active" href="companies.html">🏢 Companies</a>
-        <a class="nav-tab" href="drivers.html">🚗 Drivers</a>
-        <a class="nav-tab" href="invoices.html">📄 Invoices</a>
-        <a class="nav-tab" href="inv-company.html">🏢 Invoice / Company</a>
-        <a class="nav-tab" href="inv-driver.html">🚗 Invoice / Driver</a>
-    </div>
+<?php
+$pageTitle  = 'Companies';
+$activePage = 'companies';
+include 'includes/header.php';
+?>
 
     <div class="content">
         <h2 style="margin-bottom:20px;">Companies</h2>
@@ -41,8 +16,6 @@
             </table>
         </div>
     </div>
-
-</div>
 
 <!-- Company Modal -->
 <div id="companyModal" class="modal">
@@ -73,10 +46,8 @@
     </div>
 </div>
 
-<div id="toast" class="toast"></div>
+<?php include 'includes/footer.php'; ?>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/utils.js"></script>
 <script>
 function renderPage() {
     const tb = document.getElementById('companiesTbody');
