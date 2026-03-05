@@ -92,34 +92,28 @@
         <!-- INVOICE FOR COMPANY -->
         <div id="inv-company" class="tab-content">
             <h2 style="margin-bottom:20px;">Invoice for Company</h2>
-            <div class="manifest-controls">
-                <div class="form-group">
-                    <label>Select Company</label>
-                    <select id="icCompanySelect" onchange="renderCompanyInvoice()">
-                        <option value="">-- Select Company --</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="window.print()" style="white-space:nowrap;">🖨️ Print / PDF</button>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="openCoInvModal()">+ Create Invoice</button>
             </div>
-            <div id="icContainer">
-                <div class="empty"><div class="empty-icon">🏢</div><p>Select a company to view their invoice</p></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Invoice #</th><th>Company</th><th>Jobs</th><th>Subtotal</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody id="coInvTbody"></tbody>
+                </table>
             </div>
         </div>
 
         <!-- INVOICE FOR DRIVER -->
         <div id="inv-driver" class="tab-content">
             <h2 style="margin-bottom:20px;">Invoice for Driver</h2>
-            <div class="manifest-controls">
-                <div class="form-group">
-                    <label>Select Driver</label>
-                    <select id="idDriverSelect" onchange="renderDriverInvoice()">
-                        <option value="">-- Select Driver --</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="window.print()" style="white-space:nowrap;">🖨️ Print / PDF</button>
+            <div class="btn-row">
+                <button class="btn btn-success" onclick="openDrInvModal()">+ Create Invoice</button>
             </div>
-            <div id="idContainer">
-                <div class="empty"><div class="empty-icon">🚗</div><p>Select a driver to view their invoice</p></div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Invoice #</th><th>Driver</th><th>Jobs</th><th>Subtotal</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody id="drInvTbody"></tbody>
+                </table>
             </div>
         </div>
 
@@ -182,7 +176,7 @@
     </div>
 </div>
 
-<!-- Invoice Modal -->
+<!-- Invoice Modal (main Invoices tab) -->
 <div id="invoiceModal" class="modal">
     <div class="modal-box modal-xl">
         <div class="modal-hdr">
@@ -208,7 +202,6 @@
                     <input type="date" id="invoiceDate" required>
                 </div>
             </div>
-
             <div class="jobs-section">
                 <h4>📦 Jobs</h4>
                 <div class="line-items-scroll">
@@ -221,13 +214,11 @@
                 </div>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addJobRow()">+ Add Job</button>
             </div>
-
             <div class="summary-box">
                 <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="invSubtotal">$0.00</span></div>
                 <div class="summary-row"><span>Carrier Fee (10%):</span><span id="invCarrierFee">$0.00</span></div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="invTotal">$0.00</span></div>
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('invoiceModal')">Cancel</button>
                 <button type="submit" class="btn btn-success">✔ Save Invoice</button>
@@ -236,7 +227,97 @@
     </div>
 </div>
 
-<!-- Invoice View Modal -->
+<!-- Company Invoice Modal -->
+<div id="coInvModal" class="modal">
+    <div class="modal-box modal-xl">
+        <div class="modal-hdr">
+            <h2>Create Company Invoice</h2>
+            <button class="close-btn" onclick="closeModal('coInvModal')">&times;</button>
+        </div>
+        <form id="coInvForm" onsubmit="saveCoInvoice(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Company *</label>
+                    <select id="coInvCompany" required>
+                        <option value="">-- Select Company --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Invoice Date *</label>
+                    <input type="date" id="coInvDate" required>
+                </div>
+            </div>
+            <div class="jobs-section">
+                <h4>📦 Jobs</h4>
+                <div class="line-items-scroll">
+                    <div class="line-item-header-row-xl">
+                        <span>Job #</span><span>Driver</span><span>Customer</span><span>From</span><span>To</span>
+                        <span>CF</span><span>Rate</span><span>Total</span>
+                        <span>Bal. Due</span><span>New Bal.</span><span>Remarks</span><span></span>
+                    </div>
+                    <div id="coJobsContainer"></div>
+                </div>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addCoJobRow()">+ Add Job</button>
+            </div>
+            <div class="summary-box">
+                <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="coSubtotal">$0.00</span></div>
+                <div class="summary-row"><span>Carrier Fee (10%):</span><span id="coCarrierFee">$0.00</span></div>
+                <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('coInvModal')">Cancel</button>
+                <button type="submit" class="btn btn-success">✔ Save Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Driver Invoice Modal -->
+<div id="drInvModal" class="modal">
+    <div class="modal-box modal-xl">
+        <div class="modal-hdr">
+            <h2>Create Driver Invoice</h2>
+            <button class="close-btn" onclick="closeModal('drInvModal')">&times;</button>
+        </div>
+        <form id="drInvForm" onsubmit="saveDrInvoice(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Driver *</label>
+                    <select id="drInvDriver" required>
+                        <option value="">-- Select Driver --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Invoice Date *</label>
+                    <input type="date" id="drInvDate" required>
+                </div>
+            </div>
+            <div class="jobs-section">
+                <h4>📦 Jobs</h4>
+                <div class="line-items-scroll">
+                    <div class="line-item-header-row-xl">
+                        <span>Job #</span><span>Company</span><span>Customer</span><span>From</span><span>To</span>
+                        <span>CF</span><span>Rate</span><span>Total</span>
+                        <span>Bal. Due</span><span>New Bal.</span><span>Remarks</span><span></span>
+                    </div>
+                    <div id="drJobsContainer"></div>
+                </div>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addDrJobRow()">+ Add Job</button>
+            </div>
+            <div class="summary-box">
+                <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="drSubtotal">$0.00</span></div>
+                <div class="summary-row"><span>Carrier Fee (10%):</span><span id="drCarrierFee">$0.00</span></div>
+                <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('drInvModal')">Cancel</button>
+                <button type="submit" class="btn btn-success">✔ Save Invoice</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Shared Invoice View Modal -->
 <div id="invoiceViewModal" class="modal">
     <div class="modal-box modal-xl">
         <div class="modal-hdr">

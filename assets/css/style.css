@@ -243,6 +243,27 @@ tr:hover { background: var(--bg3); }
 .inv-summary-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #ddd; }
 .inv-summary-row:last-child { background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; border-bottom: none; }
 
+/* ── XL Line Items (12 cols: +Driver or +Company) ── */
+.line-item-header-row-xl {
+    display: grid;
+    grid-template-columns: 0.65fr 1.3fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    gap: 7px; margin-bottom: 6px; padding: 0 2px; min-width: 1150px;
+}
+.line-item-row-xl {
+    display: grid;
+    grid-template-columns: 0.65fr 1.3fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    gap: 7px; margin-bottom: 7px; align-items: center; min-width: 1150px;
+}
+.line-item-row-xl input,
+.line-item-row-xl select {
+    padding: 9px 8px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-size: 12px; width: 100%; font-family: inherit;
+}
+.line-item-row-xl input:focus,
+.line-item-row-xl select:focus { outline: none; border-color: var(--blue); }
+.line-item-row-xl select option { background: var(--bg3); }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
     body { padding: 12px; }
