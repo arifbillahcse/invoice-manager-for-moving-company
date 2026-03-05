@@ -28,7 +28,7 @@ $navItems = [
         </div>
         <div class="header-actions">
             <button class="btn btn-amber" onclick="loadSampleData()">🔄 Load Sample Data</button>
-            <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+            <a class="btn btn-success" href="api/export.php">📥 Export CSV</a>
         </div>
     </div>
 
