@@ -37,23 +37,55 @@ function triggerPrint(html) {
 
 // Download invoice as PDF using html2pdf.js (client-side, no server needed)
 function downloadPdf(html, filename) {
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = html;
-    wrapper.style.cssText = 'background:#fff;color:#111;font-family:Arial,sans-serif;padding:20px;';
-
-    const opt = {
-        margin:      [10, 10, 10, 10],
-        filename:    (filename || 'invoice') + '.pdf',
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
+    if (!html) { toast('Nothing to download.', 'error'); return; }
 
     if (typeof html2pdf === 'undefined') {
         toast('PDF library not loaded. Please check your connection.', 'error');
         return;
     }
-    html2pdf().set(opt).from(wrapper).save();
+
+    // The container MUST be appended to document.body so html2canvas can
+    // render it. We position it off-screen so it is invisible to the user.
+    // All invoice styles are embedded inline so the PDF is self-contained
+    // and independent of the page's dark-theme CSS.
+    const container = document.createElement('div');
+    container.style.cssText = 'position:absolute;left:-9999px;top:0;width:1100px;background:#fff;color:#111;font-family:Arial,sans-serif;';
+    container.innerHTML = `
+        <style>
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body { font-family:Arial,sans-serif; }
+            .inv-view { background:#fff; color:#111; padding:28px; font-family:Arial,sans-serif; }
+            .inv-view-hdr { text-align:center; border-bottom:3px solid #111; padding-bottom:14px; margin-bottom:16px; }
+            .inv-view-hdr h2 { font-size:24px; text-transform:uppercase; letter-spacing:.04em; color:#111; }
+            .inv-view-hdr p  { font-size:12px; color:#444; margin-top:3px; }
+            .inv-meta { display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:13px; margin-bottom:18px; color:#111; }
+            .inv-meta div { line-height:1.8; }
+            .inv-table { width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:18px; }
+            .inv-table th { background:#1e293b; color:#fff; padding:8px 7px; text-align:left; border:1px solid #555; white-space:nowrap; }
+            .inv-table td { border:1px solid #bbb; padding:7px; vertical-align:top; color:#111; }
+            .inv-table tbody tr:nth-child(even) { background:#f5f8ff; }
+            .inv-total-row td { background:#e8edf5; font-weight:bold; border-top:2px solid #333; }
+            .inv-summary { margin-left:auto; width:320px; border:1px solid #ccc; font-size:13px; }
+            .inv-summary-row { display:flex; justify-content:space-between; padding:8px 12px; border-bottom:1px solid #ddd; color:#111; }
+            .inv-summary-row:last-child { background:#1e293b; color:#fff; font-size:15px; font-weight:bold; border-bottom:none; }
+        </style>
+        ${html}`;
+    document.body.appendChild(container);
+
+    const opt = {
+        margin:      [10, 10, 10, 10],
+        filename:    (filename || 'invoice') + '.pdf',
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    html2pdf().set(opt).from(container).save()
+        .then(() => document.body.removeChild(container))
+        .catch(() => {
+            document.body.removeChild(container);
+            toast('PDF generation failed. Please try again.', 'error');
+        });
 }
 
 // ── Pagination helper ─────────────────────────
