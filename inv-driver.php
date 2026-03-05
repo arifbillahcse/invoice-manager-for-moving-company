@@ -84,7 +84,6 @@ include 'includes/header.php';
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-primary" onclick="triggerPrint(document.getElementById('invoiceViewContent').innerHTML)">🖨️ Print</button>
             <button class="btn btn-success" onclick="downloadPdf(document.getElementById('invoiceViewContent').innerHTML,'dr-invoice-'+currentViewId)">📥 Download PDF</button>
         </div>
     </div>
@@ -122,7 +121,6 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
-                    <button class="btn-xs btn-xs-print"  onclick="printDrInvoice(${inv.id})">🖨️ Print</button>
                     <button class="btn-xs btn-xs-pdf"    onclick="downloadPdf(buildDrInvoiceHtml(${inv.id}),'dr-invoice-${inv.id}')">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
