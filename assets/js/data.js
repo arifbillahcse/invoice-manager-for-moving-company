@@ -46,28 +46,3 @@ async function loadFromDB() {
     companyInvoices = ci;
     driverInvoices  = di;
 }
-
-// ── Header button: Load sample data ──────────
-async function loadSampleData() {
-    if ((companies.length || drivers.length || companyInvoices.length || driverInvoices.length) &&
-        !confirm('This will replace all current data with sample data. Continue?')) return;
-
-    try {
-        await api('seed', 'POST');
-        await loadFromDB();
-        if (typeof renderPage === 'function') renderPage();
-        toast('Sample data loaded!', 'success');
-    } catch (_) { /* error already shown by api() */ }
-}
-
-// ── Header button: Clear all data ────────────
-async function clearAllData() {
-    if (!confirm('Delete ALL data? This cannot be undone.')) return;
-
-    try {
-        await api('clear', 'POST');
-        companies = []; drivers = []; companyInvoices = []; driverInvoices = [];
-        if (typeof renderPage === 'function') renderPage();
-        toast('All data cleared.', 'success');
-    } catch (_) { /* error already shown by api() */ }
-}

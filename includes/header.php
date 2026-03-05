@@ -27,7 +27,6 @@ $navItems = [
             <p>Manage companies, drivers, and generate invoices</p>
         </div>
         <div class="header-actions">
-            <button class="btn btn-amber" onclick="loadSampleData()">🔄 Load Sample Data</button>
             <a class="btn btn-success" href="api/export.php">📥 Export CSV</a>
         </div>
     </div>
