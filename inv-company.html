@@ -44,11 +44,11 @@
 
 </div>
 
-<!-- Create Company Invoice Modal -->
+<!-- Create / Edit Company Invoice Modal -->
 <div id="coInvModal" class="modal">
     <div class="modal-box modal-xl">
         <div class="modal-hdr">
-            <h2>Create Company Invoice</h2>
+            <h2 id="coInvModalTitle">Create Company Invoice</h2>
             <button class="close-btn" onclick="closeModal('coInvModal')">&times;</button>
         </div>
         <form id="coInvForm" onsubmit="saveCoInvoice(event)">
@@ -64,26 +64,38 @@
                     <input type="date" id="coInvDate" required>
                 </div>
             </div>
+
             <div class="jobs-section">
                 <h4>📦 Jobs</h4>
                 <div class="line-items-scroll">
                     <div class="line-item-header-row-xl">
-                        <span>Job #</span><span>Driver</span><span>Customer</span><span>From</span><span>To</span>
-                        <span>CF</span><span>Rate</span><span>Total</span>
-                        <span>Bal. Due</span><span>New Bal.</span><span>Remarks</span><span></span>
+                        <span>Job #</span>
+                        <span>Driver</span>
+                        <span>Customer</span>
+                        <span>From</span>
+                        <span>To</span>
+                        <span>CF</span>
+                        <span>Rate</span>
+                        <span>Total</span>
+                        <span>Bal. Due</span>
+                        <span>New Bal.</span>
+                        <span>Remarks</span>
+                        <span></span>
                     </div>
                     <div id="coJobsContainer"></div>
                 </div>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addCoJobRow()">+ Add Job</button>
             </div>
+
             <div class="summary-box">
                 <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="coSubtotal">$0.00</span></div>
                 <div class="summary-row"><span>Carrier Fee (10%):</span><span id="coCarrierFee">$0.00</span></div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('coInvModal')">Cancel</button>
-                <button type="submit" class="btn btn-success">✔ Save Invoice</button>
+                <button type="submit" class="btn btn-success" id="coInvSubmitBtn">✔ Save Invoice</button>
             </div>
         </form>
     </div>
@@ -109,8 +121,14 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/utils.js"></script>
 <script>
-let coJobRows = [];
-function emptyCoJob() { return { jobNumber:'', driverId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
+let coJobRows      = [];
+let editingCoInvId = null;
+
+function emptyCoJob() {
+    return { jobNumber:'', driverId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
+}
+
+// ── Table render ─────────────────────────────
 
 function renderPage() {
     const tb = document.getElementById('coInvTbody');
@@ -131,22 +149,49 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
+                    <button class="btn-xs btn-xs-edit"   onclick="editCoInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteCoInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
     }).join('');
 }
 
+// ── Open modal (create) ──────────────────────
+
 function openCoInvModal() {
+    editingCoInvId = null;
+    document.getElementById('coInvModalTitle').textContent  = 'Create Company Invoice';
+    document.getElementById('coInvSubmitBtn').textContent   = '✔ Save Invoice';
     document.getElementById('coInvForm').reset();
     document.getElementById('coInvDate').valueAsDate = new Date();
-    document.getElementById('coInvCompany').innerHTML =
-        '<option value="">-- Select Company --</option>' +
-        companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    populateCoCompanySelect(null);
     coJobRows = [emptyCoJob()];
     renderCoJobRows();
     document.getElementById('coInvModal').classList.add('active');
 }
+
+// ── Open modal (edit) ────────────────────────
+
+function editCoInvoice(id) {
+    const inv = companyInvoices.find(i => i.id === id);
+    if (!inv) return;
+    editingCoInvId = id;
+    document.getElementById('coInvModalTitle').textContent = 'Edit Company Invoice';
+    document.getElementById('coInvSubmitBtn').textContent  = '✔ Update Invoice';
+    document.getElementById('coInvDate').value = inv.date;
+    populateCoCompanySelect(inv.companyId);
+    coJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyCoJob()]));
+    renderCoJobRows();
+    document.getElementById('coInvModal').classList.add('active');
+}
+
+function populateCoCompanySelect(selectedId) {
+    document.getElementById('coInvCompany').innerHTML =
+        '<option value="">-- Select Company --</option>' +
+        companies.map(c => `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.name}</option>`).join('');
+}
+
+// ── Job rows ─────────────────────────────────
 
 function addCoJobRow()       { coJobRows.push(emptyCoJob()); renderCoJobRows(); }
 function removeCoJobRow(idx) { if (coJobRows.length === 1) return; coJobRows.splice(idx, 1); renderCoJobRows(); }
@@ -165,17 +210,17 @@ function renderCoJobRows() {
             drivers.map(d => `<option value="${d.id}" ${d.id == r.driverId ? 'selected' : ''}>${d.firstName} ${d.lastName}</option>`).join('');
         return `
         <div class="line-item-row-xl">
-            <input type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setCoJob(${i},'jobNumber',this.value)">
+            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setCoJob(${i},'jobNumber',this.value)">
             <select onchange="setCoJob(${i},'driverId',this.value)">${driverSel}</select>
-            <input type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setCoJob(${i},'customerName',this.value)">
-            <input type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setCoJob(${i},'from',this.value)">
-            <input type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setCoJob(${i},'to',this.value)">
-            <input type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setCoJob(${i},'cubicFeet',this.value)">
-            <input type="number" placeholder="Rate"     value="${r.rate || ''}" step="0.01" onchange="setCoJob(${i},'rate',this.value)">
+            <input  type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setCoJob(${i},'customerName',this.value)">
+            <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setCoJob(${i},'from',this.value)">
+            <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setCoJob(${i},'to',this.value)">
+            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setCoJob(${i},'cubicFeet',this.value)" min="0">
+            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setCoJob(${i},'rate',this.value)" step="0.01" min="0">
             <div class="cell-total">$${total}</div>
-            <input type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  step="0.01" onchange="setCoJob(${i},'balanceDue',this.value)">
-            <input type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  step="0.01" onchange="setCoJob(${i},'newBalance',this.value)">
-            <input type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setCoJob(${i},'remarks',this.value)">
+            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setCoJob(${i},'balanceDue',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  onchange="setCoJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setCoJob(${i},'remarks',this.value)">
             ${coJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeCoJobRow(${i})">&#x2715;</button>`
                 : '<div></div>'}
@@ -192,23 +237,39 @@ function updateCoSummary() {
     document.getElementById('coTotal').textContent      = '$' + (sub + fee).toFixed(2);
 }
 
+// ── Save (create or update) ──────────────────
+
 function saveCoInvoice(e) {
     e.preventDefault();
     const cid = parseInt(document.getElementById('coInvCompany').value);
     if (!cid) { toast('Please select a company.', 'error'); return; }
     if (!coJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
-    const sub = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee = sub * 0.1;
-    companyInvoices.push({
-        id: nextCoInvId++, companyId: cid,
-        date:      document.getElementById('coInvDate').value,
-        lineItems: JSON.parse(JSON.stringify(coJobRows)),
-        subtotal: sub, carrierFee: fee, total: sub + fee
-    });
+
+    const sub  = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee  = sub * 0.1;
+    const date = document.getElementById('coInvDate').value;
+    const items = JSON.parse(JSON.stringify(coJobRows));
+
+    if (editingCoInvId) {
+        const inv = companyInvoices.find(i => i.id === editingCoInvId);
+        inv.companyId = cid;
+        inv.date      = date;
+        inv.lineItems = items;
+        inv.subtotal  = sub;
+        inv.carrierFee = fee;
+        inv.total     = sub + fee;
+        toast('Company invoice updated!', 'success');
+    } else {
+        companyInvoices.push({ id: nextCoInvId++, companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
+        toast('Company invoice saved!', 'success');
+    }
+
+    editingCoInvId = null;
     save(); renderPage();
     closeModal('coInvModal');
-    toast('Company invoice saved!', 'success');
 }
+
+// ── Delete ───────────────────────────────────
 
 function deleteCoInvoice(id) {
     if (!confirm('Delete this invoice?')) return;
@@ -216,6 +277,8 @@ function deleteCoInvoice(id) {
     save(); renderPage();
     toast('Invoice deleted.', 'success');
 }
+
+// ── View / Print ─────────────────────────────
 
 function viewCoInvoice(id) {
     const inv  = companyInvoices.find(i => i.id === id);
@@ -235,7 +298,9 @@ function viewCoInvoice(id) {
         return `<tr>
             <td>${j.jobNumber || ''}</td>
             <td>${dr.firstName ? dr.firstName + ' ' + dr.lastName : '—'}</td>
-            <td>${j.customerName || ''}</td><td>${j.from || ''}</td><td>${j.to || ''}</td>
+            <td>${j.customerName || ''}</td>
+            <td>${j.from || ''}</td>
+            <td>${j.to || ''}</td>
             <td>${j.cubicFeet || 0}</td>
             <td>$${parseFloat(j.rate || 0).toFixed(2)}</td>
             <td><strong>$${((j.cubicFeet || 0) * (j.rate || 0)).toFixed(2)}</strong></td>

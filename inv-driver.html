@@ -44,11 +44,11 @@
 
 </div>
 
-<!-- Create Driver Invoice Modal -->
+<!-- Create / Edit Driver Invoice Modal -->
 <div id="drInvModal" class="modal">
     <div class="modal-box modal-xl">
         <div class="modal-hdr">
-            <h2>Create Driver Invoice</h2>
+            <h2 id="drInvModalTitle">Create Driver Invoice</h2>
             <button class="close-btn" onclick="closeModal('drInvModal')">&times;</button>
         </div>
         <form id="drInvForm" onsubmit="saveDrInvoice(event)">
@@ -64,26 +64,38 @@
                     <input type="date" id="drInvDate" required>
                 </div>
             </div>
+
             <div class="jobs-section">
                 <h4>📦 Jobs</h4>
                 <div class="line-items-scroll">
                     <div class="line-item-header-row-xl">
-                        <span>Job #</span><span>Company</span><span>Customer</span><span>From</span><span>To</span>
-                        <span>CF</span><span>Rate</span><span>Total</span>
-                        <span>Bal. Due</span><span>New Bal.</span><span>Remarks</span><span></span>
+                        <span>Job #</span>
+                        <span>Company</span>
+                        <span>Customer</span>
+                        <span>From</span>
+                        <span>To</span>
+                        <span>CF</span>
+                        <span>Rate</span>
+                        <span>Total</span>
+                        <span>Bal. Due</span>
+                        <span>New Bal.</span>
+                        <span>Remarks</span>
+                        <span></span>
                     </div>
                     <div id="drJobsContainer"></div>
                 </div>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addDrJobRow()">+ Add Job</button>
             </div>
+
             <div class="summary-box">
                 <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="drSubtotal">$0.00</span></div>
                 <div class="summary-row"><span>Carrier Fee (10%):</span><span id="drCarrierFee">$0.00</span></div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('drInvModal')">Cancel</button>
-                <button type="submit" class="btn btn-success">✔ Save Invoice</button>
+                <button type="submit" class="btn btn-success" id="drInvSubmitBtn">✔ Save Invoice</button>
             </div>
         </form>
     </div>
@@ -109,8 +121,14 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/utils.js"></script>
 <script>
-let drJobRows = [];
-function emptyDrJob() { return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
+let drJobRows      = [];
+let editingDrInvId = null;
+
+function emptyDrJob() {
+    return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
+}
+
+// ── Table render ─────────────────────────────
 
 function renderPage() {
     const tb = document.getElementById('drInvTbody');
@@ -131,22 +149,49 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
+                    <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
     }).join('');
 }
 
+// ── Open modal (create) ──────────────────────
+
 function openDrInvModal() {
+    editingDrInvId = null;
+    document.getElementById('drInvModalTitle').textContent = 'Create Driver Invoice';
+    document.getElementById('drInvSubmitBtn').textContent  = '✔ Save Invoice';
     document.getElementById('drInvForm').reset();
     document.getElementById('drInvDate').valueAsDate = new Date();
-    document.getElementById('drInvDriver').innerHTML =
-        '<option value="">-- Select Driver --</option>' +
-        drivers.map(d => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
+    populateDrDriverSelect(null);
     drJobRows = [emptyDrJob()];
     renderDrJobRows();
     document.getElementById('drInvModal').classList.add('active');
 }
+
+// ── Open modal (edit) ────────────────────────
+
+function editDrInvoice(id) {
+    const inv = driverInvoices.find(i => i.id === id);
+    if (!inv) return;
+    editingDrInvId = id;
+    document.getElementById('drInvModalTitle').textContent = 'Edit Driver Invoice';
+    document.getElementById('drInvSubmitBtn').textContent  = '✔ Update Invoice';
+    document.getElementById('drInvDate').value = inv.date;
+    populateDrDriverSelect(inv.driverId);
+    drJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyDrJob()]));
+    renderDrJobRows();
+    document.getElementById('drInvModal').classList.add('active');
+}
+
+function populateDrDriverSelect(selectedId) {
+    document.getElementById('drInvDriver').innerHTML =
+        '<option value="">-- Select Driver --</option>' +
+        drivers.map(d => `<option value="${d.id}" ${d.id === selectedId ? 'selected' : ''}>${d.firstName} ${d.lastName}</option>`).join('');
+}
+
+// ── Job rows ─────────────────────────────────
 
 function addDrJobRow()       { drJobRows.push(emptyDrJob()); renderDrJobRows(); }
 function removeDrJobRow(idx) { if (drJobRows.length === 1) return; drJobRows.splice(idx, 1); renderDrJobRows(); }
@@ -165,17 +210,17 @@ function renderDrJobRows() {
             companies.map(c => `<option value="${c.id}" ${c.id == r.companyId ? 'selected' : ''}>${c.name}</option>`).join('');
         return `
         <div class="line-item-row-xl">
-            <input type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setDrJob(${i},'jobNumber',this.value)">
+            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setDrJob(${i},'jobNumber',this.value)">
             <select onchange="setDrJob(${i},'companyId',this.value)">${companySel}</select>
-            <input type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setDrJob(${i},'customerName',this.value)">
-            <input type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setDrJob(${i},'from',this.value)">
-            <input type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setDrJob(${i},'to',this.value)">
-            <input type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setDrJob(${i},'cubicFeet',this.value)">
-            <input type="number" placeholder="Rate"     value="${r.rate || ''}" step="0.01" onchange="setDrJob(${i},'rate',this.value)">
+            <input  type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setDrJob(${i},'customerName',this.value)">
+            <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setDrJob(${i},'from',this.value)">
+            <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setDrJob(${i},'to',this.value)">
+            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setDrJob(${i},'cubicFeet',this.value)" min="0">
+            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setDrJob(${i},'rate',this.value)" step="0.01" min="0">
             <div class="cell-total">$${total}</div>
-            <input type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  step="0.01" onchange="setDrJob(${i},'balanceDue',this.value)">
-            <input type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  step="0.01" onchange="setDrJob(${i},'newBalance',this.value)">
-            <input type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setDrJob(${i},'remarks',this.value)">
+            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setDrJob(${i},'balanceDue',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  onchange="setDrJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setDrJob(${i},'remarks',this.value)">
             ${drJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeDrJobRow(${i})">&#x2715;</button>`
                 : '<div></div>'}
@@ -192,23 +237,39 @@ function updateDrSummary() {
     document.getElementById('drTotal').textContent      = '$' + (sub + fee).toFixed(2);
 }
 
+// ── Save (create or update) ──────────────────
+
 function saveDrInvoice(e) {
     e.preventDefault();
     const did = parseInt(document.getElementById('drInvDriver').value);
     if (!did) { toast('Please select a driver.', 'error'); return; }
     if (!drJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
-    const sub = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee = sub * 0.1;
-    driverInvoices.push({
-        id: nextDrInvId++, driverId: did,
-        date:      document.getElementById('drInvDate').value,
-        lineItems: JSON.parse(JSON.stringify(drJobRows)),
-        subtotal: sub, carrierFee: fee, total: sub + fee
-    });
+
+    const sub  = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee  = sub * 0.1;
+    const date = document.getElementById('drInvDate').value;
+    const items = JSON.parse(JSON.stringify(drJobRows));
+
+    if (editingDrInvId) {
+        const inv = driverInvoices.find(i => i.id === editingDrInvId);
+        inv.driverId   = did;
+        inv.date       = date;
+        inv.lineItems  = items;
+        inv.subtotal   = sub;
+        inv.carrierFee = fee;
+        inv.total      = sub + fee;
+        toast('Driver invoice updated!', 'success');
+    } else {
+        driverInvoices.push({ id: nextDrInvId++, driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee });
+        toast('Driver invoice saved!', 'success');
+    }
+
+    editingDrInvId = null;
     save(); renderPage();
     closeModal('drInvModal');
-    toast('Driver invoice saved!', 'success');
 }
+
+// ── Delete ───────────────────────────────────
 
 function deleteDrInvoice(id) {
     if (!confirm('Delete this invoice?')) return;
@@ -216,6 +277,8 @@ function deleteDrInvoice(id) {
     save(); renderPage();
     toast('Invoice deleted.', 'success');
 }
+
+// ── View / Print ─────────────────────────────
 
 function viewDrInvoice(id) {
     const inv  = driverInvoices.find(i => i.id === id);
@@ -235,7 +298,9 @@ function viewDrInvoice(id) {
         return `<tr>
             <td>${j.jobNumber || ''}</td>
             <td>${co.name || '—'}</td>
-            <td>${j.customerName || ''}</td><td>${j.from || ''}</td><td>${j.to || ''}</td>
+            <td>${j.customerName || ''}</td>
+            <td>${j.from || ''}</td>
+            <td>${j.to || ''}</td>
             <td>${j.cubicFeet || 0}</td>
             <td>$${parseFloat(j.rate || 0).toFixed(2)}</td>
             <td><strong>$${((j.cubicFeet || 0) * (j.rate || 0)).toFixed(2)}</strong></td>
