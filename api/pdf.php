@@ -95,205 +95,125 @@ if ($type === 'CI') {
     $sigLabel = 'Driver Signature';
 }
 
-// ── Table rows ────────────────────────────────
+// ── Table rows (same structure as buildCoInvoiceHtml in JS) ──────────────────
 $rowsHtml = '';
-foreach ($items as $i => $r) {
+foreach ($items as $r) {
     $amt  = (float)$r['cubic_feet'] * (float)$r['rate'];
     $col2 = ($type === 'CI')
         ? h(trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? '')) ?: '—')
         : h($r['company_name'] ?? '—');
-    $bg   = ($i % 2 === 1) ? ' style="background:#f5f8ff;"' : '';
-    $rowsHtml .= "
-        <tr>
-            <td{$bg}>" . h($r['job_number'])             . "</td>
-            <td{$bg}>{$col2}</td>
-            <td{$bg}>" . h($r['customer_name'])          . "</td>
-            <td{$bg}>" . h($r['from_location'])          . "</td>
-            <td{$bg}>" . h($r['to_location'])            . "</td>
-            <td{$bg}>" . (float)$r['cubic_feet']                      . "</td>
-            <td{$bg}>" . money((float)$r['rate'])                     . "</td>
-            <td{$bg}><strong>" . money($amt)                          . "</strong></td>
-            <td{$bg}>" . money((float)$r['balance_due'])              . "</td>
-            <td{$bg}>" . money((float)$r['new_balance'])              . "</td>
-            <td{$bg}>" . h($r['remarks'])                . "</td>
-        </tr>";
+    $rowsHtml .= '<tr>
+        <td>' . h($r['job_number'])        . '</td>
+        <td>' . $col2                      . '</td>
+        <td>' . h($r['customer_name'])     . '</td>
+        <td>' . h($r['from_location'])     . '</td>
+        <td>' . h($r['to_location'])       . '</td>
+        <td>' . (float)$r['cubic_feet']    . '</td>
+        <td>$' . number_format((float)$r['rate'], 2) . '</td>
+        <td><strong>' . money($amt)        . '</strong></td>
+        <td>' . money((float)$r['balance_due'])  . '</td>
+        <td>' . money((float)$r['new_balance'])  . '</td>
+        <td>' . h($r['remarks'])           . '</td>
+    </tr>';
 }
 
-// ── Build the full HTML for Playwright ───────
-// All styles are self-contained; no external resources fetched.
+// ── Build HTML — identical structure/CSS to the "View" modal ─────────────────
 $html = '<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <style>
+  /* Exact same rules as style.css for the view modal */
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 11px;
-    color: #111;
-    background: #fff;
-    padding: 16px 20px;
-  }
+  body { font-family: Arial, sans-serif; background: #fff; color: #111; }
 
-  /* Header */
-  .hdr {
-    text-align: center;
-    border-bottom: 3px solid #111;
-    padding-bottom: 12px;
-    margin-bottom: 14px;
-  }
-  .hdr-title {
-    font-size: 21px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-  }
-  .hdr p { font-size: 11px; color: #444; margin-top: 3px; }
+  .inv-view { background: #fff; color: #111; padding: 28px; font-family: Arial, sans-serif; }
+  .inv-view-hdr { text-align: center; border-bottom: 3px solid #111; padding-bottom: 14px; margin-bottom: 16px; }
+  .inv-view-hdr h2 { font-size: 24px; text-transform: uppercase; letter-spacing: .04em; }
+  .inv-view-hdr p  { font-size: 12px; color: #444; margin-top: 3px; }
 
-  /* Meta row */
-  .meta {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 14px;
-  }
-  .meta td {
-    width: 50%;
-    border: 1px solid #ccc;
-    padding: 8px 12px;
-    font-size: 12px;
-    line-height: 1.85;
-    vertical-align: top;
-  }
-  .meta td:first-child { border-right: none; }
-  .meta strong { color: #222; }
+  .inv-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px; margin-bottom: 18px; }
+  .inv-meta div { line-height: 1.8; }
 
-  /* Invoice table */
-  .inv {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 10.5px;
-    margin-bottom: 14px;
-  }
-  .inv th {
-    background: #1e293b;
-    color: #fff;
-    padding: 7px 5px;
-    text-align: left;
-    border: 1px solid #3a4a5a;
-    white-space: nowrap;
-  }
-  .inv td {
-    border: 1px solid #bbb;
-    padding: 6px 5px;
-    vertical-align: top;
-  }
-  .inv tr.tot td {
-    background: #e8edf5;
-    font-weight: bold;
-    border-top: 2px solid #333;
-  }
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 18px; }
+  .inv-table th { background: #1e293b; color: #fff; padding: 8px 7px; text-align: left; border: 1px solid #555; white-space: nowrap; }
+  .inv-table td { border: 1px solid #bbb; padding: 7px 7px; vertical-align: top; }
+  .inv-table tbody tr:nth-child(even) { background: #f5f8ff; }
+  .inv-total-row td { background: #e8edf5; font-weight: bold; border-top: 2px solid #333; }
 
-  /* Summary */
-  .summary {
-    float: right;
-    width: 280px;
-    border-collapse: collapse;
-    font-size: 12px;
-    margin-bottom: 10px;
-  }
-  .summary td { padding: 7px 12px; border-bottom: 1px solid #ddd; }
-  .summary tr.total td {
-    background: #1e293b;
-    color: #fff;
-    font-size: 14px;
-    font-weight: bold;
-    border: none;
-  }
-  .clear { clear: both; }
+  .inv-summary { margin-left: auto; width: 320px; border: 1px solid #ccc; font-size: 13px; margin-top: 20px; }
+  .inv-summary-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #ddd; }
+  .inv-summary-row:last-child { background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; border-bottom: none; }
 
-  /* Signature */
-  .sig {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 38px;
-  }
-  .sig td {
-    border-top: 2px solid #333;
-    padding-top: 6px;
-    font-size: 11px;
-    color: #555;
-  }
-  .sig .date { width: 28%; padding-left: 24px; }
+  .sig { display: flex; gap: 40px; margin-top: 40px; }
+  .sig-line { flex: 1; border-top: 2px solid #333; padding-top: 6px; font-size: 12px; color: #555; }
+  .sig-line.date { flex: 0.4; }
 </style>
 </head>
 <body>
+<div class="inv-view">
 
-<div class="hdr">
-  <div class="hdr-title">' . $title . '</div>
-  <p>' . $subTitle . '</p>
-  <p>' . $detail . '</p>
-</div>
+  <div class="inv-view-hdr">
+    <h2>' . $title . '</h2>
+    <p>' . $subTitle . '</p>
+    <p>' . $detail . '</p>
+  </div>
 
-<table class="meta">
-  <tr>
-    <td>
+  <div class="inv-meta">
+    <div>
       <strong>Invoice #:</strong> ' . h($invoiceNum) . '<br>
       <strong>Date:</strong> ' . h($inv['date']) . '<br>
       <strong>Type:</strong> ' . ($type === 'CI' ? 'Company Invoice' : 'Driver Invoice') . '
-    </td>
-    <td>
+    </div>
+    <div>
       <strong>Total Jobs:</strong> ' . $jobCount . '<br>
       <strong>Total CF:</strong> ' . $totalCF . '<br>
       <strong>Total Due:</strong> ' . money($total) . '
-    </td>
-  </tr>
-</table>
+    </div>
+  </div>
 
-<table class="inv">
-  <thead>
-    <tr>
-      <th>Job #</th>
-      <th>' . h($col2Hdr) . '</th>
-      <th>Customer</th>
-      <th>From</th>
-      <th>To</th>
-      <th>CF</th>
-      <th>Rate</th>
-      <th>Total</th>
-      <th>Bal. Due</th>
-      <th>New Bal.</th>
-      <th>Remarks</th>
-    </tr>
-  </thead>
-  <tbody>
-    ' . $rowsHtml . '
-    <tr class="tot">
-      <td colspan="5"><strong>TOTALS</strong></td>
-      <td><strong>' . $totalCF . '</strong></td>
-      <td></td>
-      <td><strong>' . money($totalAmt) . '</strong></td>
-      <td><strong>' . money($totalBal) . '</strong></td>
-      <td><strong>' . money($totalNewBal) . '</strong></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
+  <table class="inv-table">
+    <thead>
+      <tr>
+        <th>Job #</th>
+        <th>' . h($col2Hdr) . '</th>
+        <th>Customer</th>
+        <th>From</th>
+        <th>To</th>
+        <th>CF</th>
+        <th>Rate</th>
+        <th>Total</th>
+        <th>Bal. Due</th>
+        <th>New Bal.</th>
+        <th>Remarks</th>
+      </tr>
+    </thead>
+    <tbody>
+      ' . $rowsHtml . '
+      <tr class="inv-total-row">
+        <td colspan="5"><strong>TOTALS</strong></td>
+        <td><strong>' . $totalCF . '</strong></td>
+        <td></td>
+        <td><strong>' . money($totalAmt) . '</strong></td>
+        <td><strong>' . money($totalBal) . '</strong></td>
+        <td><strong>' . money($totalNewBal) . '</strong></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
 
-<table class="summary">
-  <tr><td>Subtotal:</td><td>' . money($sub) . '</td></tr>
-  <tr><td>Carrier Fee (10%):</td><td>' . money($fee) . '</td></tr>
-  <tr class="total"><td>TOTAL DUE:</td><td>' . money($total) . '</td></tr>
-</table>
-<div class="clear"></div>
+  <div class="inv-summary">
+    <div class="inv-summary-row"><span>Subtotal:</span><span>' . money($sub) . '</span></div>
+    <div class="inv-summary-row"><span>Carrier Fee (10%):</span><span>' . money($fee) . '</span></div>
+    <div class="inv-summary-row"><span>TOTAL DUE:</span><span>' . money($total) . '</span></div>
+  </div>
 
-<table class="sig">
-  <tr>
-    <td>' . h($sigLabel) . '</td>
-    <td class="date">Date</td>
-  </tr>
-</table>
+  <div class="sig">
+    <div class="sig-line">' . h($sigLabel) . '</div>
+    <div class="sig-line date">Date</div>
+  </div>
 
+</div>
 </body>
 </html>';
 
