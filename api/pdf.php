@@ -298,9 +298,24 @@ $html = '<!DOCTYPE html>
 </html>';
 
 // ── Call Playwright to render the PDF ─────────
-$node   = '/opt/node22/bin/node';
+// Auto-detect the node binary — try common install paths before falling back
+$node = '';
+$candidates = [
+    trim((string)shell_exec('which node 2>/dev/null')),
+    trim((string)shell_exec('which nodejs 2>/dev/null')),
+    '/usr/local/bin/node',
+    '/usr/bin/node',
+    '/opt/node22/bin/node',
+    '/opt/node/bin/node',
+];
+foreach ($candidates as $c) {
+    if ($c !== '' && is_executable($c)) { $node = $c; break; }
+}
+if (!$node) {
+    jsonOut(['error' => 'Node.js not found on this server. Contact your host to install Node.js.'], 500);
+}
 $script = __DIR__ . '/../scripts/generate-pdf.js';
-$cmd    = escapeshellcmd($node) . ' ' . escapeshellarg($script);
+$cmd    = escapeshellarg($node) . ' ' . escapeshellarg($script);
 
 $descriptors = [
     0 => ['pipe', 'r'],  // stdin  — we write HTML here

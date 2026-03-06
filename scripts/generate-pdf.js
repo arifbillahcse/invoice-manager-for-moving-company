@@ -2,9 +2,22 @@
 // Reads a complete HTML string from stdin.
 // Renders it with Playwright headless Chromium.
 // Writes the PDF bytes to stdout.
-// Usage: echo "<html>...</html>" | node generate-pdf.js
 
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+// ── Find playwright (global install may be in a non-standard prefix) ──────────
+let chromium;
+const moduleCandidates = [
+    'playwright',
+    '/opt/node22/lib/node_modules/playwright',
+    '/usr/local/lib/node_modules/playwright',
+    '/usr/lib/node_modules/playwright',
+];
+for (const p of moduleCandidates) {
+    try { chromium = require(p).chromium; break; } catch (_) {}
+}
+if (!chromium) {
+    process.stderr.write('playwright module not found. Run: npm install -g playwright && npx playwright install chromium\n');
+    process.exit(1);
+}
 
 async function main() {
     let html = '';
@@ -13,7 +26,6 @@ async function main() {
     const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page    = await browser.newPage();
 
-    // Load the HTML directly — no network request needed
     await page.setContent(html, { waitUntil: 'networkidle' });
 
     const pdf = await page.pdf({
@@ -21,11 +33,10 @@ async function main() {
         landscape:           true,
         printBackground:     true,
         margin: { top: '12mm', right: '10mm', bottom: '12mm', left: '10mm' },
-        displayHeaderFooter: false,   // no URL, no page numbers in header/footer
+        displayHeaderFooter: false,   // no URL, no page numbers
     });
 
     await browser.close();
-
     process.stdout.write(pdf);
 }
 
