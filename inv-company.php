@@ -373,18 +373,32 @@ function invoiceInlineCSS() {
     </style>`;
 }
 
-function downloadCoInvoicePDF(id) {
+async function downloadCoInvoicePDF(id) {
     const el = document.createElement('div');
-    el.style.cssText = 'position:absolute;left:0;top:0;width:1100px;background:#fff;z-index:-9999;';
+    el.style.cssText = 'position:fixed;top:0;left:0;width:1100px;background:#fff;z-index:99999;';
     el.innerHTML = invoiceInlineCSS() + buildCoInvoiceHtml(id);
     document.body.appendChild(el);
-    html2pdf().set({
-        margin: 10,
-        filename: 'CI-' + id + '.pdf',
-        image:       { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
-        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    }).from(el).save().then(() => document.body.removeChild(el));
+    try {
+        const canvas = await html2canvas(el, {
+            scale: 2, useCORS: true, allowTaint: true, logging: false,
+            scrollX: 0, scrollY: 0, windowWidth: 1100
+        });
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const ratio = pageW / canvas.width;
+        const totalH = canvas.height * ratio;
+        const pages = Math.ceil(totalH / pageH);
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        for (let i = 0; i < pages; i++) {
+            if (i > 0) pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, -i * pageH, pageW, totalH);
+        }
+        pdf.save('CI-' + id + '.pdf');
+    } finally {
+        document.body.removeChild(el);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -392,6 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPage();
 });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </body>
 </html>
