@@ -349,17 +349,41 @@ function printCoInvoice(id) {
     triggerPrint(buildCoInvoiceHtml(id));
 }
 
+function invoiceInlineCSS() {
+    return `<style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body,div{font-family:Arial,sans-serif;color:#111;background:#fff;}
+        .inv-view{background:#fff;color:#111;padding:28px;font-family:Arial,sans-serif;}
+        .inv-view-hdr{text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;}
+        .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;}
+        .inv-view-hdr p{font-size:12px;color:#444;margin-top:3px;}
+        .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;}
+        .inv-meta div{line-height:1.8;}
+        .inv-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:18px;}
+        .inv-table th{background:#1e293b;color:#fff;padding:8px 7px;text-align:left;border:1px solid #555;white-space:nowrap;}
+        .inv-table td{border:1px solid #bbb;padding:7px;vertical-align:top;}
+        .inv-table tbody tr:nth-child(even){background:#f5f8ff;}
+        .inv-total-row td{background:#e8edf5;font-weight:bold;border-top:2px solid #333;}
+        .inv-summary{margin-left:auto;width:320px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
+        .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
+        .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:bold;border-bottom:none;}
+        .sig{display:flex;gap:40px;margin-top:40px;}
+        .sig-line{flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;}
+        .sig-line.date{flex:0.4;}
+    </style>`;
+}
+
 function downloadCoInvoicePDF(id) {
     const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;left:-9999px;top:0;width:1100px;background:#fff;';
-    el.innerHTML = buildCoInvoiceHtml(id);
+    el.style.cssText = 'position:absolute;left:0;top:0;width:1100px;background:#fff;z-index:-9999;';
+    el.innerHTML = invoiceInlineCSS() + buildCoInvoiceHtml(id);
     document.body.appendChild(el);
     html2pdf().set({
         margin: 10,
         filename: 'CI-' + id + '.pdf',
-        image:     { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF:     { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        image:       { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false },
+        jsPDF:       { unit: 'mm', format: 'a4', orientation: 'landscape' }
     }).from(el).save().then(() => document.body.removeChild(el));
 }
 
