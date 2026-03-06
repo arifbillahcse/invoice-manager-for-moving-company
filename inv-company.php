@@ -380,7 +380,7 @@ async function downloadCoInvoicePDF(id) {
     document.body.appendChild(el);
     try {
         const canvas = await html2canvas(el, {
-            scale: 2, useCORS: true, allowTaint: true, logging: false,
+            scale: 4, useCORS: true, allowTaint: true, logging: false,
             scrollX: 0, scrollY: 0, windowWidth: 1100
         });
         const { jsPDF } = window.jspdf;
@@ -390,7 +390,7 @@ async function downloadCoInvoicePDF(id) {
         const ratio = pageW / canvas.width;
         const totalH = canvas.height * ratio;
         const pages = Math.ceil(totalH / pageH);
-        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+        const imgData = canvas.toDataURL('image/png');
         for (let i = 0; i < pages; i++) {
             if (i > 0) pdf.addPage();
             pdf.addImage(imgData, 'JPEG', 0, -i * pageH, pageW, totalH);
