@@ -349,39 +349,46 @@ function printDrInvoice(id) {
     triggerPrint(buildDrInvoiceHtml(id));
 }
 
-function invoiceInlineCSS() {
-    return `<style>
+function invoiceInlineCSSText() {
+    return `
         *{margin:0;padding:0;box-sizing:border-box;}
-        body,div{font-family:Arial,sans-serif;color:#111;background:#fff;}
-        .inv-view{background:#fff;color:#111;padding:28px;font-family:Arial,sans-serif;}
+        body,div,td,th,p,span,strong{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;color:#111;}
+        h2{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;font-weight:700;}
+        strong,b{font-weight:700 !important;}
+        .inv-view{background:#fff;color:#111;padding:28px;}
         .inv-view-hdr{text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;}
-        .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;}
+        .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
         .inv-view-hdr p{font-size:12px;color:#444;margin-top:3px;}
         .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;}
         .inv-meta div{line-height:1.8;}
         .inv-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:18px;}
-        .inv-table th{background:#1e293b;color:#fff;padding:8px 7px;text-align:left;border:1px solid #555;white-space:nowrap;}
+        .inv-table th{background:#1e293b;color:#fff;padding:8px 7px;text-align:left;border:1px solid #555;white-space:nowrap;font-weight:700;}
         .inv-table td{border:1px solid #bbb;padding:7px;vertical-align:top;}
         .inv-table tbody tr:nth-child(even){background:#f5f8ff;}
-        .inv-total-row td{background:#e8edf5;font-weight:bold;border-top:2px solid #333;}
+        .inv-total-row td{background:#e8edf5;font-weight:700;border-top:2px solid #333;}
         .inv-summary{margin-left:auto;width:320px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
-        .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:bold;border-bottom:none;}
+        .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .sig{display:flex;gap:40px;margin-top:40px;}
         .sig-line{flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;}
         .sig-line.date{flex:0.4;}
-    </style>`;
+    `;
 }
 
 async function downloadDrInvoicePDF(id) {
     const el = document.createElement('div');
     el.style.cssText = 'position:fixed;top:0;left:0;width:1100px;background:#fff;z-index:99999;';
-    el.innerHTML = invoiceInlineCSS() + buildDrInvoiceHtml(id);
+    el.innerHTML = buildDrInvoiceHtml(id);
     document.body.appendChild(el);
     try {
         const canvas = await html2canvas(el, {
             scale: 2, useCORS: true, allowTaint: true, logging: false,
-            scrollX: 0, scrollY: 0, windowWidth: 1100
+            scrollX: 0, scrollY: 0, windowWidth: 1100,
+            onclone: (doc) => {
+                const s = doc.createElement('style');
+                s.textContent = invoiceInlineCSSText();
+                doc.head.appendChild(s);
+            }
         });
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
