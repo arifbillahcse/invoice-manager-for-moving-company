@@ -86,7 +86,7 @@ include 'includes/header.php';
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-success" onclick="window.open('invoice-print.php?type=CI&id='+currentViewId,'_blank')">📥 Download PDF</button>
+            <button class="btn btn-success" onclick="downloadCoInvoicePDF(currentViewId)">📥 Download PDF</button>
         </div>
     </div>
 </div>
@@ -130,7 +130,7 @@ function renderPage() {
                 <td>${inv.date}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
-                    <button class="btn-xs btn-xs-pdf"    onclick="window.open('invoice-print.php?type=CI&id=${inv.id}','_blank')">📥 PDF</button>
+                    <button class="btn-xs btn-xs-pdf"    onclick="downloadCoInvoicePDF(${inv.id})">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editCoInvoice(${inv.id})">✏️ Edit</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteCoInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
@@ -349,10 +349,25 @@ function printCoInvoice(id) {
     triggerPrint(buildCoInvoiceHtml(id));
 }
 
+function downloadCoInvoicePDF(id) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;left:-9999px;top:0;width:1100px;background:#fff;';
+    el.innerHTML = buildCoInvoiceHtml(id);
+    document.body.appendChild(el);
+    html2pdf().set({
+        margin: 10,
+        filename: 'CI-' + id + '.pdf',
+        image:     { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF:     { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    }).from(el).save().then(() => document.body.removeChild(el));
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFromDB();
     renderPage();
 });
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
