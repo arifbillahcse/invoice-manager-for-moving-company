@@ -16,17 +16,31 @@ No frameworks or build tools are required.
 
 ---
 
-## Features
+## Features & Functions Overview
+
+The system is organized around a two-invoice workflow: a **Driver Invoice** is created first to record all jobs a driver completed for one or more companies. From there, Company Invoices can be generated automatically — one per company — pre-filled with the relevant jobs and the driver already linked. This eliminates double-entry and keeps both invoice types in sync.
+
+### Pages & Modules
 
 - **Dashboard** — at-a-glance stats (total companies, drivers, invoices, revenue) with a Recent Invoices feed sorted by date
 - **Companies** — create, edit, and delete company records (name, address, city, phone, DOT #, MC #)
 - **Drivers** — create, edit, and delete driver records (name, phone, license #)
-- **Company Invoices (CI)** — invoices billed to a company; each line item captures job #, driver, customer, from/to location, cubic feet, rate, balance due, and new balance; 10% carrier fee applied automatically
-- **Driver Invoices (DI)** — invoices billed to a driver; same line-item structure, with company reference instead of driver
-- **View & PDF** — view any invoice in a formatted modal and download it as a PDF (landscape A4)
-- **CSV Export** — export all data as a ZIP containing four CSV files: `companies.csv`, `drivers.csv`, `company-invoices.csv`, `driver-invoices.csv`
-- **Pagination** — all invoice tables paginate at 30 rows per page
-- **Authentication** — session-based login with bcrypt-hashed passwords; change password from any page via the header
+- **Invoice / Driver** — create and manage invoices billed to a driver; each line item captures job #, company, customer name, from/to location, cubic feet, rate, balance due, new balance, and remarks; a 10% carrier fee is applied automatically to the subtotal
+- **Invoice / Company** — create and manage invoices billed to a company; same line-item structure with driver reference instead of company; can be created manually or generated automatically from a Driver Invoice
+
+### Key Functions
+
+| Function | Where | Description |
+|----------|-------|-------------|
+| Create / Edit / Delete | All invoice pages | Full CRUD on both Driver and Company Invoices with an inline multi-job form |
+| **Generate Company Invoices** | Invoice / Driver | One click on any Driver Invoice row (or inside its view modal) groups its jobs by company and creates one Company Invoice per unique company, with the driver pre-filled on every line item |
+| Auto-increment Invoice # | System-generated | Invoice numbers (`DI-N` for driver, `CI-N` for company) are assigned automatically by the database — no manual entry required |
+| View Invoice | All invoice pages | Opens a formatted invoice detail modal matching the printable layout |
+| Download PDF | All invoice pages | Renders the invoice to a landscape A4 PDF client-side using html2canvas + jsPDF |
+| CSV Export | Header (any page) | Downloads a ZIP of four CSV files covering all companies, drivers, and both invoice types |
+| Pagination | All invoice tables | Tables paginate at 30 rows per page with prev/next controls |
+| Change Password | Header (any page) | Inline modal to update the admin password; enforces bcrypt hashing |
+| Authentication | All pages | Session-based login guards every page and API endpoint; unauthenticated requests are redirected or receive a `401` JSON response |
 
 ---
 
