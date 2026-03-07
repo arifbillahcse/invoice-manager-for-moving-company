@@ -369,6 +369,7 @@ function invoiceInlineCSSText() {
         .inv-summary{margin-left:auto;width:320px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
+        .inv-summary-row:last-child span{color:#fff !important;}
         .sig{display:flex;gap:40px;margin-top:40px;}
         .sig-line{flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;}
         .sig-line.date{flex:0.4;}
