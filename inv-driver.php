@@ -86,7 +86,8 @@ include 'includes/header.php';
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-success" onclick="downloadDrInvoicePDF(currentViewId)">📥 Download PDF</button>
+            <button class="btn btn-primary"   onclick="generateCoInvoices(currentViewId)">🏢 Generate Company Invoices</button>
+            <button class="btn btn-success"   onclick="downloadDrInvoicePDF(currentViewId)">📥 Download PDF</button>
         </div>
     </div>
 </div>
@@ -132,6 +133,7 @@ function renderPage() {
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-pdf"    onclick="downloadDrInvoicePDF(${inv.id})">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
+                    <button class="btn-xs btn-xs-gen"    onclick="generateCoInvoices(${inv.id})">🏢 Generate CI</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
@@ -405,6 +407,76 @@ async function downloadDrInvoicePDF(id) {
         pdf.save('DI-' + id + '.pdf');
     } finally {
         document.body.removeChild(el);
+    }
+}
+
+// ── Generate Company Invoices from this Driver Invoice ──
+
+async function generateCoInvoices(drInvId) {
+    const inv = driverInvoices.find(i => i.id === drInvId);
+    if (!inv) return;
+
+    // Group jobs by companyId (skip jobs with no company)
+    const groups = {};
+    (inv.lineItems || []).forEach(job => {
+        const cid = job.companyId;
+        if (!cid) return;
+        if (!groups[cid]) groups[cid] = [];
+        groups[cid].push(job);
+    });
+
+    const companyIds = Object.keys(groups);
+    if (!companyIds.length) {
+        toast('No jobs with a company assigned. Please set a company on each job.', 'error');
+        return;
+    }
+
+    const count = companyIds.length;
+    const names = companyIds.map(cid => {
+        const co = companies.find(c => c.id == cid);
+        return co ? co.name : 'Unknown';
+    }).join(', ');
+
+    if (!confirm(`This will generate ${count} Company Invoice${count > 1 ? 's' : ''} for:\n${names}\n\nContinue?`)) return;
+
+    let created = 0;
+    for (const companyId of companyIds) {
+        const jobs = groups[companyId];
+        const sub  = jobs.reduce((s, j) => s + (j.cubicFeet || 0) * (j.rate || 0), 0);
+        const fee  = sub * 0.1;
+
+        // Build line items for the company invoice — driver comes from the parent invoice
+        const lineItems = jobs.map(j => ({
+            jobNumber:    j.jobNumber,
+            driverId:     inv.driverId,
+            customerName: j.customerName,
+            from:         j.from,
+            to:           j.to,
+            cubicFeet:    j.cubicFeet,
+            rate:         j.rate,
+            balanceDue:   j.balanceDue,
+            newBalance:   j.newBalance,
+            remarks:      j.remarks,
+        }));
+
+        const payload = {
+            companyId:  parseInt(companyId),
+            date:       inv.date,
+            lineItems,
+            subtotal:   sub,
+            carrierFee: fee,
+            total:      sub + fee,
+        };
+
+        try {
+            const res = await api('inv-company', 'POST', payload);
+            companyInvoices.push({ id: res.id, ...payload });
+            created++;
+        } catch (_) { /* error already shown by api() */ }
+    }
+
+    if (created > 0) {
+        toast(`${created} Company Invoice${created > 1 ? 's' : ''} generated successfully!`, 'success');
     }
 }
 

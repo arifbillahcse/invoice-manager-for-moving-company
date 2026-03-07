@@ -339,6 +339,8 @@ tr:hover { background: var(--bg3); }
 .btn-xs-print:hover { background: #6d28d9; }
 .btn-xs-pdf   { background: #0369a1; color: #fff; }
 .btn-xs-pdf:hover   { background: #075985; }
+.btn-xs-gen   { background: #b45309; color: #fff; }
+.btn-xs-gen:hover   { background: #92400e; }
 
 /* ── Print area: hidden on screen, only shown during window.print() ── */
 /* NOTE: #printArea is placed OUTSIDE .app-wrapper (in footer.php) so   */

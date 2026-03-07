@@ -110,7 +110,7 @@ let currentPage = 1;
 function renderPage() {
     const tb = document.getElementById('coInvTbody');
     if (!companyInvoices.length) {
-        tb.innerHTML = '<tr><td colspan="7" class="empty">No company invoices yet. Click "+ Create Invoice" to start.</td></tr>';
+        tb.innerHTML = '<tr><td colspan="7" class="empty">No company invoices yet. Go to Invoice / Driver and click "🏢 Generate CI" on a driver invoice to auto-generate, or click "+ Create Invoice" to add manually.</td></tr>';
         renderPagination('coInvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
