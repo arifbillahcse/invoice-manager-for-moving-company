@@ -301,6 +301,13 @@ function buildDrInvoiceHtml(id) {
 
     return `
         <div class="inv-view">
+            <div class="inv-brand-bar">
+                <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
+                <div class="inv-brand-addr">
+                    <div>11720 Amber Park Dr Ste 160, Alpharetta, GA 30009</div>
+                    <div>DOT: 7521000 &nbsp;&nbsp; Phone: +1 (347) 668-4584</div>
+                </div>
+            </div>
             <div class="inv-view-hdr">
                 <h2>${dr.firstName || ''} ${dr.lastName || ''}</h2>
                 <p>Driver Statement</p>
@@ -358,6 +365,9 @@ function invoiceInlineCSSText() {
         h2{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;font-weight:700;}
         strong,b{font-weight:700 !important;}
         .inv-view{background:#fff;color:#111;padding:28px;}
+        .inv-brand-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
+        .inv-brand-logo{height:64px;width:auto;object-fit:contain;}
+        .inv-brand-addr{text-align:right;font-size:12px;color:#444;line-height:1.8;}
         .inv-view-hdr{text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;}
         .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
         .inv-view-hdr p{font-size:12px;color:#444;margin-top:3px;}
