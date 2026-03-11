@@ -102,7 +102,7 @@ include 'includes/header.php';
         <div id="invoiceViewContent"></div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('invoiceViewModal')">Close</button>
-            <button class="btn btn-primary"   onclick="generateCoInvoices(currentViewId)">🏢 Generate Company Invoices</button>
+            <!-- <button class="btn btn-primary"   onclick="generateCoInvoices(currentViewId)">🏢 Generate Company Invoices</button> -->
             <button class="btn btn-success"   onclick="downloadDrInvoicePDF(currentViewId)">📥 Download PDF</button>
         </div>
     </div>
@@ -149,7 +149,7 @@ function renderPage() {
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-pdf"    onclick="downloadDrInvoicePDF(${inv.id})">📥 PDF</button>
                     <button class="btn-xs btn-xs-edit"   onclick="editDrInvoice(${inv.id})">✏️ Edit</button>
-                    <button class="btn-xs btn-xs-gen"    onclick="generateCoInvoices(${inv.id})">🏢 Generate CI</button>
+                    <!-- <button class="btn-xs btn-xs-gen"    onclick="generateCoInvoices(${inv.id})">🏢 Generate CI</button> -->
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
                 </div></td>
             </tr>`;
@@ -245,7 +245,7 @@ function updateDrSummary() {
     const paid  = parseFloat(document.getElementById('drPaid').value) || 0;
     document.getElementById('drSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('drCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads + paid).toFixed(2);
+    document.getElementById('drTotal').textContent      = '$' + (sub - fee + labor + pads + paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -264,7 +264,7 @@ async function saveDrInvoice(e) {
     const date     = document.getElementById('drInvDate').value;
     const paidDate = document.getElementById('drPaidDate').value || '';
     const items    = JSON.parse(JSON.stringify(drJobRows));
-    const payload  = { driverId: did, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads + paid };
+    const payload  = { driverId: did, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
 
     try {
         let drInvId;
@@ -329,7 +329,7 @@ async function autoSyncCoInvoices(drInvId, inv) {
             lineItems,
             subtotal:        sub,
             carrierFee:      fee,
-            total:           sub + fee,
+            total:           sub - fee,
         };
         try {
             const res = await api('inv-company', 'POST', payload);
@@ -459,7 +459,7 @@ function buildDrInvoiceHtml(id) {
                 </div>
                 <div class="inv-summary-row">
                     <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
-                    <span>$${(inv.carrierFee || 0).toFixed(2)}</span>
+                    <span>− $${(inv.carrierFee || 0).toFixed(2)}</span>
                 </div>
                 <div class="inv-summary-row">
                     <span>Labor Cost</span>

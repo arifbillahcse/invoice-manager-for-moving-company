@@ -243,7 +243,7 @@ function updateCoSummary() {
     const paid  = parseFloat(document.getElementById('coPaid').value) || 0;
     document.getElementById('coSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('coCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('coTotal').textContent      = '$' + (sub + fee + labor + pads + paid).toFixed(2);
+    document.getElementById('coTotal').textContent      = '$' + (sub - fee + labor + pads + paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -262,7 +262,7 @@ async function saveCoInvoice(e) {
     const date     = document.getElementById('coInvDate').value;
     const paidDate = document.getElementById('coPaidDate').value || '';
     const items    = JSON.parse(JSON.stringify(coJobRows));
-    const payload  = { companyId: cid, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads + paid };
+    const payload  = { companyId: cid, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
 
     try {
         if (editingCoInvId) {
@@ -398,7 +398,7 @@ function buildCoInvoiceHtml(id) {
                 </div>
                 <div class="inv-summary-row">
                     <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
-                    <span>$${(inv.carrierFee || 0).toFixed(2)}</span>
+                    <span>− $${(inv.carrierFee || 0).toFixed(2)}</span>
                 </div>
                 <div class="inv-summary-row">
                     <span>Labor Cost</span>

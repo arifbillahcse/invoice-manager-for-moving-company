@@ -98,9 +98,9 @@ body {
 }
 .btn-primary  { background: var(--blue);  color: #fff; }
 .btn-primary:hover  { background: var(--blue-dark); }
-.btn-success  { background: var(--green-dark); color: #fff; }
+.btn-success  { background: var(--green-dark); color: #fff; text-decoration: none; }
 .btn-success:hover  { background: #15803d; }
-.btn-danger   { background: var(--red);   color: #fff; }
+.btn-danger   { background: var(--red);   color: #fff; text-decoration: none; }
 .btn-danger:hover   { background: var(--red-dark); }
 .btn-secondary{ background: #475569; color: #fff; }
 .btn-secondary:hover{ background: #334155; }
