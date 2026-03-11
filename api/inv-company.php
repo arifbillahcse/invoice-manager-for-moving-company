@@ -12,11 +12,12 @@ if ($method === 'GET') {
     )->fetchAll();
 
     foreach ($invoices as &$inv) {
-        $inv['id']         = (int)$inv['id'];
-        $inv['companyId']  = (int)$inv['company_id'];
-        $inv['subtotal']   = (float)$inv['subtotal'];
-        $inv['carrierFee'] = (float)$inv['carrier_fee'];
-        $inv['total']      = (float)$inv['total'];
+        $inv['id']              = (int)$inv['id'];
+        $inv['companyId']       = (int)$inv['company_id'];
+        $inv['driverInvoiceId'] = $inv['driver_invoice_id'] ? (int)$inv['driver_invoice_id'] : null;
+        $inv['subtotal']        = (float)$inv['subtotal'];
+        $inv['carrierFee']      = (float)$inv['carrier_fee'];
+        $inv['total']           = (float)$inv['total'];
 
         $items = $db->prepare(
             "SELECT * FROM company_invoice_items WHERE invoice_id=? ORDER BY sort_order, id"
@@ -24,7 +25,7 @@ if ($method === 'GET') {
         $items->execute([$inv['id']]);
         $inv['lineItems'] = array_map('mapCoItem', $items->fetchAll());
 
-        unset($inv['company_id'], $inv['carrier_fee'], $inv['created_at']);
+        unset($inv['company_id'], $inv['driver_invoice_id'], $inv['carrier_fee'], $inv['created_at']);
     }
     unset($inv);
 
@@ -37,11 +38,12 @@ if ($method === 'POST') {
     $db->beginTransaction();
 
     $stmt = $db->prepare(
-        "INSERT INTO company_invoices (company_id, date, subtotal, carrier_fee, total)
-         VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO company_invoices (company_id, driver_invoice_id, date, subtotal, carrier_fee, total)
+         VALUES (?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([
         (int)$d['companyId'],
+        isset($d['driverInvoiceId']) && $d['driverInvoiceId'] ? (int)$d['driverInvoiceId'] : null,
         $d['date'],
         (float)($d['subtotal']   ?? 0),
         (float)($d['carrierFee'] ?? 0),

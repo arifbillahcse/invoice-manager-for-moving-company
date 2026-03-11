@@ -39,14 +39,16 @@ CREATE TABLE IF NOT EXISTS drivers (
 -- Company Invoices
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS company_invoices (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    company_id  INT            NOT NULL,
-    date        DATE           NOT NULL,
-    subtotal    DECIMAL(12,2)  DEFAULT 0,
-    carrier_fee DECIMAL(12,2)  DEFAULT 0,
-    total       DECIMAL(12,2)  DEFAULT 0,
-    created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    company_id        INT            NOT NULL,
+    driver_invoice_id INT            DEFAULT NULL,
+    date              DATE           NOT NULL,
+    subtotal          DECIMAL(12,2)  DEFAULT 0,
+    carrier_fee       DECIMAL(12,2)  DEFAULT 0,
+    total             DECIMAL(12,2)  DEFAULT 0,
+    created_at        TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id)        REFERENCES companies(id)       ON DELETE CASCADE,
+    FOREIGN KEY (driver_invoice_id) REFERENCES driver_invoices(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS company_invoice_items (
@@ -120,3 +122,11 @@ CREATE TABLE IF NOT EXISTS users (
 ALTER TABLE driver_invoices
     ADD COLUMN IF NOT EXISTS labor_cost DECIMAL(12,2) DEFAULT 0 AFTER carrier_fee,
     ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0 AFTER labor_cost;
+
+-- ─────────────────────────────────────────────
+-- Migration: Add driver_invoice_id to company_invoices
+-- ─────────────────────────────────────────────
+ALTER TABLE company_invoices
+    ADD COLUMN IF NOT EXISTS driver_invoice_id INT DEFAULT NULL AFTER company_id,
+    ADD CONSTRAINT IF NOT EXISTS fk_co_inv_driver_inv
+        FOREIGN KEY (driver_invoice_id) REFERENCES driver_invoices(id) ON DELETE SET NULL;

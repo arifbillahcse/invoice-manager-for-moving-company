@@ -254,19 +254,79 @@ async function saveDrInvoice(e) {
     const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, total: sub + fee + labor + pads };
 
     try {
+        let drInvId;
         if (editingDrInvId) {
-            await api('inv-driver', 'PUT', payload, editingDrInvId);
-            Object.assign(driverInvoices.find(i => i.id === editingDrInvId), payload);
+            drInvId = editingDrInvId;
+            await api('inv-driver', 'PUT', payload, drInvId);
+            Object.assign(driverInvoices.find(i => i.id === drInvId), payload);
             toast('Driver invoice updated!', 'success');
         } else {
             const res = await api('inv-driver', 'POST', payload);
-            driverInvoices.push({ id: res.id, ...payload });
+            drInvId = res.id;
+            driverInvoices.push({ id: drInvId, ...payload });
             toast('Driver invoice saved!', 'success');
         }
         editingDrInvId = null;
         renderPage();
         closeModal('drInvModal');
+        // Option B: auto-sync company invoices silently
+        await autoSyncCoInvoices(drInvId, { ...payload, id: drInvId });
     } catch (_) { /* error already shown by api() */ }
+}
+
+// ── Auto-sync company invoices (Option B) ────
+
+async function autoSyncCoInvoices(drInvId, inv) {
+    const groups = {};
+    (inv.lineItems || []).forEach(job => {
+        if (!job.companyId) return;
+        if (!groups[job.companyId]) groups[job.companyId] = [];
+        groups[job.companyId].push(job);
+    });
+    if (!Object.keys(groups).length) return;
+
+    // Delete company invoices previously linked to this driver invoice
+    const linked = companyInvoices.filter(ci => ci.driverInvoiceId === drInvId);
+    for (const ci of linked) {
+        try { await api('inv-company', 'DELETE', null, ci.id); } catch (_) {}
+    }
+    companyInvoices = companyInvoices.filter(ci => ci.driverInvoiceId !== drInvId);
+
+    // Recreate one company invoice per company
+    let created = 0;
+    for (const [companyId, jobs] of Object.entries(groups)) {
+        const sub  = jobs.reduce((s, j) => s + (j.cubicFeet || 0) * (j.rate || 0), 0);
+        const fee  = sub * 0.1;
+        const lineItems = jobs.map(j => ({
+            jobNumber:    j.jobNumber,
+            driverId:     inv.driverId,
+            customerName: j.customerName,
+            from:         j.from,
+            to:           j.to,
+            cubicFeet:    j.cubicFeet,
+            rate:         j.rate,
+            balanceDue:   j.balanceDue,
+            newBalance:   j.newBalance,
+            remarks:      j.remarks,
+        }));
+        const payload = {
+            companyId:       parseInt(companyId),
+            driverInvoiceId: drInvId,
+            date:            inv.date,
+            lineItems,
+            subtotal:        sub,
+            carrierFee:      fee,
+            total:           sub + fee,
+        };
+        try {
+            const res = await api('inv-company', 'POST', payload);
+            companyInvoices.push({ id: res.id, ...payload });
+            created++;
+        } catch (_) {}
+    }
+    if (created > 0) {
+        toast(`${created} company invoice${created > 1 ? 's' : ''} auto-synced.`, 'success');
+    }
 }
 
 // ── Delete ───────────────────────────────────
@@ -496,74 +556,25 @@ async function downloadDrInvoicePDF(id) {
     }
 }
 
-// ── Generate Company Invoices from this Driver Invoice ──
+// ── Manual re-sync button ────────────────────
 
 async function generateCoInvoices(drInvId) {
     const inv = driverInvoices.find(i => i.id === drInvId);
     if (!inv) return;
 
-    // Group jobs by companyId (skip jobs with no company)
-    const groups = {};
-    (inv.lineItems || []).forEach(job => {
-        const cid = job.companyId;
-        if (!cid) return;
-        if (!groups[cid]) groups[cid] = [];
-        groups[cid].push(job);
-    });
-
-    const companyIds = Object.keys(groups);
-    if (!companyIds.length) {
-        toast('No jobs with a company assigned. Please set a company on each job.', 'error');
+    const hasCompany = (inv.lineItems || []).some(j => j.companyId);
+    if (!hasCompany) {
+        toast('No jobs with a company assigned.', 'error');
         return;
     }
 
-    const count = companyIds.length;
-    const names = companyIds.map(cid => {
-        const co = companies.find(c => c.id == cid);
-        return co ? co.name : 'Unknown';
-    }).join(', ');
+    const linked = companyInvoices.filter(ci => ci.driverInvoiceId === drInvId);
+    const msg = linked.length
+        ? `This will delete ${linked.length} existing company invoice${linked.length > 1 ? 's' : ''} linked to DI-${drInvId} and recreate them.\n\nContinue?`
+        : `Generate company invoices for DI-${drInvId}?\n\nContinue?`;
+    if (!confirm(msg)) return;
 
-    if (!confirm(`This will generate ${count} Company Invoice${count > 1 ? 's' : ''} for:\n${names}\n\nContinue?`)) return;
-
-    let created = 0;
-    for (const companyId of companyIds) {
-        const jobs = groups[companyId];
-        const sub  = jobs.reduce((s, j) => s + (j.cubicFeet || 0) * (j.rate || 0), 0);
-        const fee  = sub * 0.1;
-
-        // Build line items for the company invoice — driver comes from the parent invoice
-        const lineItems = jobs.map(j => ({
-            jobNumber:    j.jobNumber,
-            driverId:     inv.driverId,
-            customerName: j.customerName,
-            from:         j.from,
-            to:           j.to,
-            cubicFeet:    j.cubicFeet,
-            rate:         j.rate,
-            balanceDue:   j.balanceDue,
-            newBalance:   j.newBalance,
-            remarks:      j.remarks,
-        }));
-
-        const payload = {
-            companyId:  parseInt(companyId),
-            date:       inv.date,
-            lineItems,
-            subtotal:   sub,
-            carrierFee: fee,
-            total:      sub + fee,
-        };
-
-        try {
-            const res = await api('inv-company', 'POST', payload);
-            companyInvoices.push({ id: res.id, ...payload });
-            created++;
-        } catch (_) { /* error already shown by api() */ }
-    }
-
-    if (created > 0) {
-        toast(`${created} Company Invoice${created > 1 ? 's' : ''} generated successfully!`, 'success');
-    }
+    await autoSyncCoInvoices(drInvId, inv);
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
