@@ -126,11 +126,15 @@ ALTER TABLE driver_invoices
     ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0 AFTER labor_cost;
 
 -- ─────────────────────────────────────────────
--- Migration: Add driver_invoice_id to company_invoices
+-- Migration: Add driver_invoice_id, labor_cost, pads to company_invoices
+-- Step 1 – columns (IF NOT EXISTS supported in MariaDB 10.0.2+)
 -- ─────────────────────────────────────────────
 ALTER TABLE company_invoices
-    ADD COLUMN IF NOT EXISTS driver_invoice_id INT DEFAULT NULL AFTER company_id,
-    ADD COLUMN IF NOT EXISTS labor_cost        DECIMAL(12,2) DEFAULT 0 AFTER carrier_fee,
-    ADD COLUMN IF NOT EXISTS pads              DECIMAL(12,2) DEFAULT 0 AFTER labor_cost,
-    ADD CONSTRAINT IF NOT EXISTS fk_co_inv_driver_inv
+    ADD COLUMN IF NOT EXISTS driver_invoice_id INT           DEFAULT NULL AFTER company_id,
+    ADD COLUMN IF NOT EXISTS labor_cost        DECIMAL(12,2) DEFAULT 0    AFTER carrier_fee,
+    ADD COLUMN IF NOT EXISTS pads              DECIMAL(12,2) DEFAULT 0    AFTER labor_cost;
+
+-- Step 2 – foreign key (run once; skip if constraint already exists)
+ALTER TABLE company_invoices
+    ADD CONSTRAINT fk_co_inv_driver_inv
         FOREIGN KEY (driver_invoice_id) REFERENCES driver_invoices(id) ON DELETE SET NULL;
