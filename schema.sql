@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS driver_invoices (
     date        DATE           NOT NULL,
     subtotal    DECIMAL(12,2)  DEFAULT 0,
     carrier_fee DECIMAL(12,2)  DEFAULT 0,
+    labor_cost  DECIMAL(12,2)  DEFAULT 0,
+    pads        DECIMAL(12,2)  DEFAULT 0,
     total       DECIMAL(12,2)  DEFAULT 0,
     created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE
@@ -109,3 +111,12 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ─────────────────────────────────────────────
+-- Migration: Add labor_cost and pads to driver_invoices
+-- Run these if you already have an existing database
+-- (safe to run multiple times — IF NOT EXISTS guards it)
+-- ─────────────────────────────────────────────
+ALTER TABLE driver_invoices
+    ADD COLUMN IF NOT EXISTS labor_cost DECIMAL(12,2) DEFAULT 0 AFTER carrier_fee,
+    ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0 AFTER labor_cost;

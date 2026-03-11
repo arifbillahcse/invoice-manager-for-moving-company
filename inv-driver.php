@@ -64,7 +64,15 @@ include 'includes/header.php';
 
             <div class="summary-box">
                 <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="drSubtotal">$0.00</span></div>
-                <div class="summary-row"><span>Carrier Fee (10%):</span><span id="drCarrierFee">$0.00</span></div>
+                <div class="summary-row"><span>Carrier Fee (Bal. Due total):</span><span id="drCarrierFee">$0.00</span></div>
+                <div class="summary-row">
+                    <span>Labor Cost:</span>
+                    <input type="number" id="drLaborCost" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                </div>
+                <div class="summary-row">
+                    <span>Pads:</span>
+                    <input type="number" id="drPads" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                </div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
             </div>
 
@@ -167,6 +175,8 @@ function editDrInvoice(id) {
     document.getElementById('drInvModalTitle').textContent = 'Edit Driver Invoice';
     document.getElementById('drInvSubmitBtn').textContent  = '✔ Update Invoice';
     document.getElementById('drInvDate').value = inv.date;
+    document.getElementById('drLaborCost').value = inv.laborCost || '';
+    document.getElementById('drPads').value      = inv.pads || '';
     populateDrDriverSelect(inv.driverId);
     drJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyDrJob()]));
     renderDrJobRows();
@@ -218,11 +228,13 @@ function renderDrJobRows() {
 }
 
 function updateDrSummary() {
-    const sub = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee = sub * 0.1;
+    const sub   = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee   = drJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const labor = parseFloat(document.getElementById('drLaborCost').value) || 0;
+    const pads  = parseFloat(document.getElementById('drPads').value) || 0;
     document.getElementById('drSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('drCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('drTotal').textContent      = '$' + (sub + fee).toFixed(2);
+    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -234,10 +246,12 @@ async function saveDrInvoice(e) {
     if (!drJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
     const sub     = drJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee     = sub * 0.1;
+    const fee     = drJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const labor   = parseFloat(document.getElementById('drLaborCost').value) || 0;
+    const pads    = parseFloat(document.getElementById('drPads').value) || 0;
     const date    = document.getElementById('drInvDate').value;
     const items   = JSON.parse(JSON.stringify(drJobRows));
-    const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee };
+    const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, total: sub + fee + labor + pads };
 
     try {
         if (editingDrInvId) {
@@ -299,47 +313,101 @@ function buildDrInvoiceHtml(id) {
         </tr>`;
     }).join('');
 
+    const laborCost = inv.laborCost || 0;
+    const pads      = inv.pads || 0;
+
     return `
         <div class="inv-view">
-            <div class="inv-brand-bar">
-                <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
-                <div class="inv-brand-addr">
-                    <div>11720 Amber Park Dr Ste 160, Alpharetta, GA 30009</div>
-                    <div>DOT: 7521000 &nbsp;&nbsp; Phone: +1 (347) 668-4584</div>
+
+            <!-- ── Header: logo+company left, driver info right ── -->
+            <div class="inv-header-row">
+                <div class="inv-company-block">
+                    <div class="inv-logo-name-row">
+                        <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
+                        <div class="inv-company-name-block">
+                            <strong>Bh Relocation</strong>
+                            <span>Moving forward</span>
+                        </div>
+                    </div>
+                    <div class="inv-company-addr">
+                        11720 Amber Park Dr Ste 160<br>
+                        Alpharetta, GA 30009<br>
+                        DOT: 7521000<br>
+                        Phone: +1 (347) 668-4584
+                    </div>
+                </div>
+                <div class="inv-driver-block">
+                    <h2>${dr.firstName || ''} ${dr.lastName || ''}</h2>
+                    <p>Driver Statement</p>
+                    <p>Phone: ${dr.phone || '—'} &nbsp;&nbsp; License: ${dr.license || '—'}</p>
                 </div>
             </div>
-            <div class="inv-view-hdr">
-                <h2>${dr.firstName || ''} ${dr.lastName || ''}</h2>
-                <p>Driver Statement</p>
-                <p>Phone: ${dr.phone || '—'} &nbsp;&nbsp; License: ${dr.license || '—'}</p>
-            </div>
+
+            <!-- ── Invoice meta + quick summary side by side ── -->
             <div class="inv-meta">
-                <div><strong>Invoice #:</strong> DI-${inv.id}<br><strong>Date:</strong> ${inv.date}<br><strong>Type:</strong> Driver Invoice</div>
-                <div><strong>Total Jobs:</strong> ${jobs.length}<br><strong>Total CF:</strong> ${totalCF}<br><strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}</div>
+                <div>
+                    <strong>Invoice #:</strong> DI-${inv.id}<br>
+                    <strong>Date:</strong> ${inv.date}<br>
+                    <strong>Type:</strong> Driver Invoice
+                </div>
+                <div style="text-align:right;">
+                    <strong>Total Jobs:</strong> ${jobs.length}<br>
+                    <strong>Total CF:</strong> ${totalCF}<br>
+                    <strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}
+                </div>
             </div>
+
+            <!-- ── Jobs table ── -->
             <div style="overflow-x:auto;">
             <table class="inv-table">
-                <thead><tr><th>Job #</th><th>Company</th><th>Customer</th><th>From</th><th>To</th><th>CF</th><th>Rate</th><th>Total</th><th>Bal. Due</th><th>New Bal.</th><th>Remarks</th></tr></thead>
+                <thead><tr>
+                    <th>Job #</th><th>Company</th><th>Customer</th>
+                    <th>From</th><th>To</th><th>CF</th><th>Rate</th>
+                    <th>Total</th><th>Bal. Due</th><th>New Bal.</th><th>Remarks</th>
+                </tr></thead>
                 <tbody>
                     ${rows}
                     <tr class="inv-total-row">
                         <td colspan="5"><strong>TOTALS</strong></td>
-                        <td><strong>${totalCF}</strong></td><td></td>
+                        <td><strong>${totalCF}</strong></td>
+                        <td></td>
                         <td><strong>$${totalAmt.toFixed(2)}</strong></td>
                         <td><strong>$${totalBal.toFixed(2)}</strong></td>
-                        <td><strong>$${totalNewBal.toFixed(2)}</strong></td><td></td>
+                        <td><strong>$${totalNewBal.toFixed(2)}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
             </div>
+
+            <!-- ── Summary (right-aligned) ── -->
             <div class="inv-summary" style="margin-top:20px;">
-                <div class="inv-summary-row"><span>Subtotal:</span><span>$${(inv.subtotal || 0).toFixed(2)}</span></div>
-                <div class="inv-summary-row"><span>Carrier Fee (10%):</span><span>$${(inv.carrierFee || 0).toFixed(2)}</span></div>
-                <div class="inv-summary-row"><span>TOTAL DUE:</span><span>$${(inv.total || 0).toFixed(2)}</span></div>
+                <div class="inv-summary-row">
+                    <span>Subtotal <em style="font-size:11px;font-weight:400;">(Total table value)</em></span>
+                    <span>$${(inv.subtotal || 0).toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
+                    <span>$${(inv.carrierFee || 0).toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Labor Cost</span>
+                    <span>$${laborCost.toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Pads</span>
+                    <span>$${pads.toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>TOTAL DUE</span>
+                    <span>$${(inv.total || 0).toFixed(2)}</span>
+                </div>
             </div>
-            <div style="display:flex;gap:40px;margin-top:40px;">
-                <div style="flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Driver Signature</div>
-                <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
+
+            <!-- ── Footer: Remarks left, Signature right ── -->
+            <div class="inv-footer-row">
+                <div class="inv-footer-cell"><strong>Remarks</strong></div>
+                <div class="inv-footer-cell" style="text-align:right;"><strong>Signature</strong></div>
             </div>
         </div>`;
 }
@@ -365,26 +433,40 @@ function invoiceInlineCSSText() {
         h2{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;font-weight:700;}
         strong,b{font-weight:700 !important;}
         .inv-view{background:#fff;color:#111;padding:28px;}
-        .inv-brand-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
-        .inv-brand-logo{height:64px;width:auto;object-fit:contain;}
-        .inv-brand-addr{text-align:right;font-size:12px;color:#444;line-height:1.8;}
-        .inv-view-hdr{text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;}
-        .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
-        .inv-view-hdr p{font-size:12px;color:#444;margin-top:3px;}
-        .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;}
-        .inv-meta div{line-height:1.8;}
+
+        /* ── Header row: company left, driver right ── */
+        .inv-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
+        .inv-company-block{display:flex;flex-direction:column;gap:8px;}
+        .inv-logo-name-row{display:flex;align-items:center;gap:10px;}
+        .inv-brand-logo{height:56px;width:auto;object-fit:contain;}
+        .inv-company-name-block{display:flex;flex-direction:column;line-height:1.4;}
+        .inv-company-name-block strong{font-size:16px;font-weight:700;}
+        .inv-company-name-block span{font-size:11px;color:#666;}
+        .inv-company-addr{font-size:12px;color:#444;line-height:1.8;margin-top:4px;}
+        .inv-driver-block{text-align:right;}
+        .inv-driver-block h2{font-size:26px;font-weight:700;letter-spacing:.02em;}
+        .inv-driver-block p{font-size:12px;color:#444;margin-top:4px;}
+
+        /* ── Meta row ── */
+        .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;padding:12px 14px;border:1px solid #ddd;background:#f9fafb;}
+        .inv-meta div{line-height:1.9;}
+
+        /* ── Table ── */
         .inv-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:18px;}
         .inv-table th{background:#1e293b;color:#fff;padding:8px 7px;text-align:left;border:1px solid #555;white-space:nowrap;font-weight:700;}
         .inv-table td{border:1px solid #bbb;padding:7px;vertical-align:top;}
         .inv-table tbody tr:nth-child(even){background:#f5f8ff;}
         .inv-total-row td{background:#e8edf5;font-weight:700;border-top:2px solid #333;}
-        .inv-summary{margin-left:auto;width:320px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
+
+        /* ── Summary box ── */
+        .inv-summary{margin-left:auto;width:360px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .inv-summary-row:last-child span{color:#fff !important;}
-        .sig{display:flex;gap:40px;margin-top:40px;}
-        .sig-line{flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;}
-        .sig-line.date{flex:0.4;}
+
+        /* ── Footer ── */
+        .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
+        .inv-footer-cell{font-size:14px;font-weight:700;color:#111;}
     `;
 }
 

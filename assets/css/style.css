@@ -230,22 +230,40 @@ tr:hover { background: var(--bg3); }
 
 /* ── Invoice View Print ── */
 .inv-view { background: #fff; color: #111; padding: 28px; border-radius: 6px; font-family: Arial, sans-serif; }
-.inv-brand-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0; }
-.inv-brand-logo { height: 64px; width: auto; object-fit: contain; }
-.inv-brand-addr { text-align: right; font-size: 12px; color: #444; line-height: 1.8; }
-.inv-view-hdr { text-align: center; border-bottom: 3px solid #111; padding-bottom: 14px; margin-bottom: 16px; }
-.inv-view-hdr h2 { font-size: 24px; text-transform: uppercase; letter-spacing: .04em; }
-.inv-view-hdr p  { font-size: 12px; color: #444; margin-top: 3px; }
-.inv-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px; margin-bottom: 18px; }
-.inv-meta div { line-height: 1.8; }
+
+/* Header row: company-block left, driver-block right */
+.inv-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0; }
+.inv-company-block { display: flex; flex-direction: column; gap: 8px; }
+.inv-logo-name-row { display: flex; align-items: center; gap: 10px; }
+.inv-brand-logo { height: 56px; width: auto; object-fit: contain; }
+.inv-company-name-block { display: flex; flex-direction: column; line-height: 1.4; }
+.inv-company-name-block strong { font-size: 16px; font-weight: 700; }
+.inv-company-name-block span { font-size: 11px; color: #666; }
+.inv-company-addr { font-size: 12px; color: #444; line-height: 1.8; margin-top: 4px; }
+.inv-driver-block { text-align: right; }
+.inv-driver-block h2 { font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+.inv-driver-block p { font-size: 12px; color: #444; margin-top: 4px; }
+
+/* Meta row */
+.inv-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid #ddd; background: #f9fafb; }
+.inv-meta div { line-height: 1.9; }
+
+/* Table */
 .inv-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 18px; }
 .inv-table th { background: #1e293b; color: #fff; padding: 8px 7px; text-align: left; border: 1px solid #555; white-space: nowrap; }
 .inv-table td { border: 1px solid #bbb; padding: 7px 7px; vertical-align: top; }
 .inv-table tbody tr:nth-child(even) { background: #f5f8ff; }
 .inv-total-row td { background: #e8edf5; font-weight: bold; border-top: 2px solid #333; }
-.inv-summary { margin-left: auto; width: 320px; border: 1px solid #ccc; font-size: 13px; }
+
+/* Summary box */
+.inv-summary { margin-left: auto; width: 360px; border: 1px solid #ccc; font-size: 13px; }
 .inv-summary-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #ddd; }
 .inv-summary-row:last-child { background: #1e293b; color: #fff; font-size: 15px; font-weight: bold; border-bottom: none; }
+.inv-summary-row:last-child span { color: #fff !important; }
+
+/* Footer */
+.inv-footer-row { display: flex; justify-content: space-between; margin-top: 48px; padding-top: 14px; border-top: 2px solid #333; }
+.inv-footer-cell { font-size: 14px; font-weight: 700; color: #111; }
 
 /* ── XL Line Items (12 cols: +Driver or +Company) ── */
 .line-item-header-row-xl {
