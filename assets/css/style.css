@@ -265,13 +265,13 @@ tr:hover { background: var(--bg3); }
 /* ── XL Line Items (12 cols: +Driver or +Company) ── */
 .line-item-header-row-xl {
     display: grid;
-    grid-template-columns: 0.65fr 1.3fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    grid-template-columns: 1.1fr 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
     gap: 7px; margin-bottom: 6px; padding: 0 2px; min-width: 1150px;
 }
 .line-item-header-row-xl span { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .line-item-row-xl {
     display: grid;
-    grid-template-columns: 0.65fr 1.3fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    grid-template-columns: 1.1fr 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
     gap: 7px; margin-bottom: 7px; align-items: center; min-width: 1150px;
 }
 .line-item-row-xl input,
