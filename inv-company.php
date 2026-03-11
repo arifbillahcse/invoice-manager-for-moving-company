@@ -67,8 +67,8 @@ include 'includes/header.php';
             </div>
 
             <div class="summary-box">
-                <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="coSubtotal">$0.00</span></div>
-                <div class="summary-row"><span>Carrier Fee (Bal. Due total):</span><span id="coCarrierFee">$0.00</span></div>
+                <div class="summary-row"><span>Subtotal (Bal. Due total):</span><span id="coSubtotal">$0.00</span></div>
+                <div class="summary-row"><span>Carrier Fee (Total table value):</span><span id="coCarrierFee">$0.00</span></div>
                 <div class="summary-row">
                     <span>Labor Cost:</span>
                     <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
@@ -236,8 +236,8 @@ function renderCoJobRows() {
 }
 
 function updateCoSummary() {
-    const sub   = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee   = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const sub   = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const fee   = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
     const labor = parseFloat(document.getElementById('coLaborCost').value) || 0;
     const pads  = parseFloat(document.getElementById('coPads').value) || 0;
     const paid  = parseFloat(document.getElementById('coPaid').value) || 0;
@@ -254,8 +254,8 @@ async function saveCoInvoice(e) {
     if (!cid) { toast('Please select a company.', 'error'); return; }
     if (!coJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
-    const sub     = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee     = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const sub     = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const fee     = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
     const labor   = parseFloat(document.getElementById('coLaborCost').value) || 0;
     const pads    = parseFloat(document.getElementById('coPads').value) || 0;
     const paid     = parseFloat(document.getElementById('coPaid').value) || 0;
@@ -393,11 +393,11 @@ function buildCoInvoiceHtml(id) {
             <!-- ── Summary (right-aligned) ── -->
             <div class="inv-summary" style="margin-top:20px;">
                 <div class="inv-summary-row">
-                    <span>Subtotal <em style="font-size:11px;font-weight:400;">(Total table value)</em></span>
+                    <span>Subtotal <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
                     <span>$${(inv.subtotal || 0).toFixed(2)}</span>
                 </div>
                 <div class="inv-summary-row">
-                    <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
+                    <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Total table value)</em></span>
                     <span>− $${(inv.carrierFee || 0).toFixed(2)}</span>
                 </div>
                 <div class="inv-summary-row">

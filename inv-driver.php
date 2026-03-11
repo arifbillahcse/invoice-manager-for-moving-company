@@ -308,8 +308,8 @@ async function autoSyncCoInvoices(drInvId, inv) {
     // Recreate one company invoice per company
     let created = 0;
     for (const [companyId, jobs] of Object.entries(groups)) {
-        const sub  = jobs.reduce((s, j) => s + (j.cubicFeet || 0) * (j.rate || 0), 0);
-        const fee  = sub * 0.1;
+        const sub  = jobs.reduce((s, j) => s + (j.balanceDue || 0), 0);
+        const fee  = jobs.reduce((s, j) => s + (j.cubicFeet || 0) * (j.rate || 0), 0);
         const lineItems = jobs.map(j => ({
             jobNumber:    j.jobNumber,
             driverId:     inv.driverId,
