@@ -38,6 +38,10 @@ include 'includes/header.php';
                     <label>Invoice Date *</label>
                     <input type="date" id="coInvDate" required>
                 </div>
+                <div class="form-group">
+                    <label>Paid Date</label>
+                    <input type="date" id="coPaidDate">
+                </div>
             </div>
 
             <div class="jobs-section">
@@ -180,6 +184,7 @@ function editCoInvoice(id) {
     document.getElementById('coLaborCost').value  = inv.laborCost || '';
     document.getElementById('coPads').value       = inv.pads || '';
     document.getElementById('coPaid').value       = inv.paid || '';
+    document.getElementById('coPaidDate').value   = inv.paidDate || '';
     populateCoCompanySelect(inv.companyId);
     coJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyCoJob()]));
     renderCoJobRows();
@@ -253,10 +258,11 @@ async function saveCoInvoice(e) {
     const fee     = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
     const labor   = parseFloat(document.getElementById('coLaborCost').value) || 0;
     const pads    = parseFloat(document.getElementById('coPads').value) || 0;
-    const paid    = parseFloat(document.getElementById('coPaid').value) || 0;
-    const date    = document.getElementById('coInvDate').value;
-    const items   = JSON.parse(JSON.stringify(coJobRows));
-    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads - paid };
+    const paid     = parseFloat(document.getElementById('coPaid').value) || 0;
+    const date     = document.getElementById('coInvDate').value;
+    const paidDate = document.getElementById('coPaidDate').value || '';
+    const items    = JSON.parse(JSON.stringify(coJobRows));
+    const payload  = { companyId: cid, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads - paid };
 
     try {
         if (editingCoInvId) {
@@ -343,6 +349,7 @@ function buildCoInvoiceHtml(id) {
                     <p>Company Statement</p>
                     <p>${co.address || ''}${co.city ? ', ' + co.city : ''}</p>
                     <p>DOT: ${co.dotNumber || '—'} &nbsp;&nbsp; Tel: ${co.phone || '—'}</p>
+                    ${inv.paidDate ? `<p class="inv-paid-date"><strong>Paid Date: ${inv.paidDate}</strong></p>` : ''}
                 </div>
             </div>
 
@@ -468,6 +475,7 @@ function invoiceInlineCSSText() {
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .inv-summary-row:last-child span{color:#fff !important;}
         .inv-paid-row{background:#f0fdf4;color:#166534;font-weight:600;}
+        .inv-paid-date{margin-top:8px;font-size:13px;color:#111;}
 
         /* ── Footer ── */
         .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
