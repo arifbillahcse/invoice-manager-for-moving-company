@@ -79,7 +79,7 @@ include 'includes/header.php';
                 </div>
                 <div class="summary-row">
                     <span>Paid:</span>
-                    <input type="number" id="drPaid" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                    <input type="number" id="drPaid" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
                 </div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
             </div>
@@ -245,7 +245,7 @@ function updateDrSummary() {
     const paid  = parseFloat(document.getElementById('drPaid').value) || 0;
     document.getElementById('drSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('drCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads - paid).toFixed(2);
+    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads + paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -264,7 +264,7 @@ async function saveDrInvoice(e) {
     const date     = document.getElementById('drInvDate').value;
     const paidDate = document.getElementById('drPaidDate').value || '';
     const items    = JSON.parse(JSON.stringify(drJobRows));
-    const payload  = { driverId: did, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads - paid };
+    const payload  = { driverId: did, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads + paid };
 
     try {
         let drInvId;
@@ -469,9 +469,9 @@ function buildDrInvoiceHtml(id) {
                     <span>Pads</span>
                     <span>$${pads.toFixed(2)}</span>
                 </div>
-                ${paid > 0 ? `<div class="inv-summary-row inv-paid-row">
-                    <span>Paid</span>
-                    <span>− $${paid.toFixed(2)}</span>
+                ${paid !== 0 ? `<div class="inv-summary-row ${paid < 0 ? 'inv-paid-row' : 'inv-charge-row'}">
+                    <span>${paid < 0 ? 'Paid' : 'Charge'}</span>
+                    <span>${paid < 0 ? '− $' + Math.abs(paid).toFixed(2) : '+ $' + paid.toFixed(2)}</span>
                 </div>` : ''}
                 <div class="inv-summary-row">
                     <span>TOTAL DUE</span>
@@ -537,6 +537,7 @@ function invoiceInlineCSSText() {
         .inv-summary-row:last-child span{color:#fff !important;}
         .inv-paid-row{background:#f0fdf4;color:#166534;font-weight:600;}
         .inv-paid-date{margin-top:8px;font-size:13px;color:#111;}
+        .inv-charge-row{background:#fef2f2;color:#991b1b;font-weight:600;}
 
         /* ── Footer ── */
         .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
