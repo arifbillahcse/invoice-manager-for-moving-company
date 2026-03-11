@@ -19,6 +19,8 @@ if ($method === 'GET') {
         $inv['carrierFee']      = (float)$inv['carrier_fee'];
         $inv['laborCost']       = (float)($inv['labor_cost'] ?? 0);
         $inv['pads']            = (float)($inv['pads'] ?? 0);
+        $inv['paid']            = (float)($inv['paid'] ?? 0);
+        $inv['paidDate']        = $inv['paid_date'] ?? '';
         $inv['total']           = (float)$inv['total'];
 
         $items = $db->prepare(
@@ -27,7 +29,7 @@ if ($method === 'GET') {
         $items->execute([$inv['id']]);
         $inv['lineItems'] = array_map('mapCoItem', $items->fetchAll());
 
-        unset($inv['company_id'], $inv['driver_invoice_id'], $inv['carrier_fee'], $inv['labor_cost'], $inv['created_at']);
+        unset($inv['company_id'], $inv['driver_invoice_id'], $inv['carrier_fee'], $inv['labor_cost'], $inv['paid_date'], $inv['created_at']);
     }
     unset($inv);
 
@@ -40,8 +42,8 @@ if ($method === 'POST') {
     $db->beginTransaction();
 
     $stmt = $db->prepare(
-        "INSERT INTO company_invoices (company_id, driver_invoice_id, date, subtotal, carrier_fee, labor_cost, pads, total)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO company_invoices (company_id, driver_invoice_id, date, subtotal, carrier_fee, labor_cost, pads, paid, paid_date, total)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([
         (int)$d['companyId'],
@@ -51,6 +53,8 @@ if ($method === 'POST') {
         (float)($d['carrierFee'] ?? 0),
         (float)($d['laborCost']  ?? 0),
         (float)($d['pads']       ?? 0),
+        (float)($d['paid']       ?? 0),
+        ($d['paidDate'] ?? '') ?: null,
         (float)($d['total']      ?? 0),
     ]);
     $id = (int)$db->lastInsertId();
@@ -68,7 +72,7 @@ if ($method === 'PUT') {
     $db->beginTransaction();
 
     $db->prepare(
-        "UPDATE company_invoices SET company_id=?, date=?, subtotal=?, carrier_fee=?, labor_cost=?, pads=?, total=? WHERE id=?"
+        "UPDATE company_invoices SET company_id=?, date=?, subtotal=?, carrier_fee=?, labor_cost=?, pads=?, paid=?, paid_date=?, total=? WHERE id=?"
     )->execute([
         (int)$d['companyId'],
         $d['date'],
@@ -76,6 +80,8 @@ if ($method === 'PUT') {
         (float)($d['carrierFee'] ?? 0),
         (float)($d['laborCost']  ?? 0),
         (float)($d['pads']       ?? 0),
+        (float)($d['paid']       ?? 0),
+        ($d['paidDate'] ?? '') ?: null,
         (float)($d['total']      ?? 0),
         $id,
     ]);

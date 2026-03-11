@@ -138,3 +138,12 @@ ALTER TABLE company_invoices
 ALTER TABLE company_invoices
     ADD CONSTRAINT fk_co_inv_driver_inv
         FOREIGN KEY (driver_invoice_id) REFERENCES driver_invoices(id) ON DELETE SET NULL;
+
+-- Migration: Add paid and paid_date to both invoice tables
+ALTER TABLE driver_invoices
+    ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL;
+
+ALTER TABLE company_invoices
+    ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL;
