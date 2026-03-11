@@ -492,10 +492,10 @@ function invoiceInlineCSSText() {
 
         /* ── Header row: company left, driver right ── */
         .inv-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
-        .inv-company-block{display:flex;flex-direction:column;gap:8px;}
+        .inv-company-block{display:flex;flex-direction:row;align-items:flex-start;gap:12px;}
         .inv-logo-name-row{display:flex;align-items:center;gap:10px;}
         .inv-brand-logo{height:56px;width:auto;object-fit:contain;}
-        .inv-company-addr{font-size:12px;color:#444;line-height:1.8;margin-top:4px;}
+        .inv-company-addr{font-size:12px;color:#444;line-height:1.8;}
         .inv-driver-block{text-align:right;}
         .inv-driver-block h2{font-size:26px;font-weight:700;letter-spacing:.02em;}
         .inv-driver-block p{font-size:12px;color:#444;margin-top:4px;}
