@@ -17,6 +17,8 @@ if ($method === 'GET') {
         $inv['driverInvoiceId'] = $inv['driver_invoice_id'] ? (int)$inv['driver_invoice_id'] : null;
         $inv['subtotal']        = (float)$inv['subtotal'];
         $inv['carrierFee']      = (float)$inv['carrier_fee'];
+        $inv['laborCost']       = (float)($inv['labor_cost'] ?? 0);
+        $inv['pads']            = (float)($inv['pads'] ?? 0);
         $inv['total']           = (float)$inv['total'];
 
         $items = $db->prepare(
@@ -25,7 +27,7 @@ if ($method === 'GET') {
         $items->execute([$inv['id']]);
         $inv['lineItems'] = array_map('mapCoItem', $items->fetchAll());
 
-        unset($inv['company_id'], $inv['driver_invoice_id'], $inv['carrier_fee'], $inv['created_at']);
+        unset($inv['company_id'], $inv['driver_invoice_id'], $inv['carrier_fee'], $inv['labor_cost'], $inv['created_at']);
     }
     unset($inv);
 
@@ -38,8 +40,8 @@ if ($method === 'POST') {
     $db->beginTransaction();
 
     $stmt = $db->prepare(
-        "INSERT INTO company_invoices (company_id, driver_invoice_id, date, subtotal, carrier_fee, total)
-         VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO company_invoices (company_id, driver_invoice_id, date, subtotal, carrier_fee, labor_cost, pads, total)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([
         (int)$d['companyId'],
@@ -47,6 +49,8 @@ if ($method === 'POST') {
         $d['date'],
         (float)($d['subtotal']   ?? 0),
         (float)($d['carrierFee'] ?? 0),
+        (float)($d['laborCost']  ?? 0),
+        (float)($d['pads']       ?? 0),
         (float)($d['total']      ?? 0),
     ]);
     $id = (int)$db->lastInsertId();
@@ -64,12 +68,14 @@ if ($method === 'PUT') {
     $db->beginTransaction();
 
     $db->prepare(
-        "UPDATE company_invoices SET company_id=?, date=?, subtotal=?, carrier_fee=?, total=? WHERE id=?"
+        "UPDATE company_invoices SET company_id=?, date=?, subtotal=?, carrier_fee=?, labor_cost=?, pads=?, total=? WHERE id=?"
     )->execute([
         (int)$d['companyId'],
         $d['date'],
         (float)($d['subtotal']   ?? 0),
         (float)($d['carrierFee'] ?? 0),
+        (float)($d['laborCost']  ?? 0),
+        (float)($d['pads']       ?? 0),
         (float)($d['total']      ?? 0),
         $id,
     ]);

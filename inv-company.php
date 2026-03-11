@@ -44,8 +44,8 @@ include 'includes/header.php';
                 <h4>📦 Jobs</h4>
                 <div class="line-items-scroll">
                     <div class="line-item-header-row-xl">
-                        <span>Job #</span>
                         <span>Driver</span>
+                        <span>Job #</span>
                         <span>Customer</span>
                         <span>From</span>
                         <span>To</span>
@@ -53,7 +53,7 @@ include 'includes/header.php';
                         <span>Rate</span>
                         <span>Total</span>
                         <span>Bal. Due</span>
-                        <span>New Bal.</span>
+                        <span>Original Bal.</span>
                         <span>Remarks</span>
                         <span></span>
                     </div>
@@ -64,7 +64,15 @@ include 'includes/header.php';
 
             <div class="summary-box">
                 <div class="summary-row"><span>Subtotal (CF × Rate):</span><span id="coSubtotal">$0.00</span></div>
-                <div class="summary-row"><span>Carrier Fee (10%):</span><span id="coCarrierFee">$0.00</span></div>
+                <div class="summary-row"><span>Carrier Fee (Bal. Due total):</span><span id="coCarrierFee">$0.00</span></div>
+                <div class="summary-row">
+                    <span>Labor Cost:</span>
+                    <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                </div>
+                <div class="summary-row">
+                    <span>Pads:</span>
+                    <input type="number" id="coPads" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                </div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
             </div>
 
@@ -164,7 +172,9 @@ function editCoInvoice(id) {
     editingCoInvId = id;
     document.getElementById('coInvModalTitle').textContent = 'Edit Company Invoice';
     document.getElementById('coInvSubmitBtn').textContent  = '✔ Update Invoice';
-    document.getElementById('coInvDate').value = inv.date;
+    document.getElementById('coInvDate').value    = inv.date;
+    document.getElementById('coLaborCost').value  = inv.laborCost || '';
+    document.getElementById('coPads').value       = inv.pads || '';
     populateCoCompanySelect(inv.companyId);
     coJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyCoJob()]));
     renderCoJobRows();
@@ -196,8 +206,8 @@ function renderCoJobRows() {
             drivers.map(d => `<option value="${d.id}" ${d.id == r.driverId ? 'selected' : ''}>${d.firstName} ${d.lastName}</option>`).join('');
         return `
         <div class="line-item-row-xl">
-            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setCoJob(${i},'jobNumber',this.value)">
             <select onchange="setCoJob(${i},'driverId',this.value)">${driverSel}</select>
+            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setCoJob(${i},'jobNumber',this.value)">
             <input  type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setCoJob(${i},'customerName',this.value)">
             <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setCoJob(${i},'from',this.value)">
             <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setCoJob(${i},'to',this.value)">
@@ -205,7 +215,7 @@ function renderCoJobRows() {
             <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setCoJob(${i},'rate',this.value)" step="0.01" min="0">
             <div class="cell-total">$${total}</div>
             <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setCoJob(${i},'balanceDue',this.value)" step="0.01" min="0">
-            <input  type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  onchange="setCoJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setCoJob(${i},'newBalance',this.value)" step="0.01" min="0">
             <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setCoJob(${i},'remarks',this.value)">
             ${coJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeCoJobRow(${i})">&#x2715;</button>`
@@ -216,11 +226,13 @@ function renderCoJobRows() {
 }
 
 function updateCoSummary() {
-    const sub = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee = sub * 0.1;
+    const sub   = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
+    const fee   = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const labor = parseFloat(document.getElementById('coLaborCost').value) || 0;
+    const pads  = parseFloat(document.getElementById('coPads').value) || 0;
     document.getElementById('coSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('coCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('coTotal').textContent      = '$' + (sub + fee).toFixed(2);
+    document.getElementById('coTotal').textContent      = '$' + (sub + fee + labor + pads).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -232,10 +244,12 @@ async function saveCoInvoice(e) {
     if (!coJobRows.some(r => r.customerName || r.jobNumber)) { toast('Add at least one job.', 'error'); return; }
 
     const sub     = coJobRows.reduce((s, r) => s + (r.cubicFeet || 0) * (r.rate || 0), 0);
-    const fee     = sub * 0.1;
+    const fee     = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
+    const labor   = parseFloat(document.getElementById('coLaborCost').value) || 0;
+    const pads    = parseFloat(document.getElementById('coPads').value) || 0;
     const date    = document.getElementById('coInvDate').value;
     const items   = JSON.parse(JSON.stringify(coJobRows));
-    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, total: sub + fee };
+    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, total: sub + fee + labor + pads };
 
     try {
         if (editingCoInvId) {
@@ -283,8 +297,8 @@ function buildCoInvoiceHtml(id) {
     const rows = jobs.map(j => {
         const dr = drivers.find(d => d.id == j.driverId) || {};
         return `<tr>
-            <td>${j.jobNumber || ''}</td>
             <td>${dr.firstName ? dr.firstName + ' ' + dr.lastName : '—'}</td>
+            <td>${j.jobNumber || ''}</td>
             <td>${j.customerName || ''}</td>
             <td>${j.from || ''}</td>
             <td>${j.to || ''}</td>
@@ -297,47 +311,98 @@ function buildCoInvoiceHtml(id) {
         </tr>`;
     }).join('');
 
+    const laborCost = inv.laborCost || 0;
+    const pads      = inv.pads || 0;
+
     return `
         <div class="inv-view">
-            <div class="inv-brand-bar">
-                <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
-                <div class="inv-brand-addr">
-                    <div>11720 Amber Park Dr Ste 160, Alpharetta, GA 30009</div>
-                    <div>DOT: 7521000 &nbsp;&nbsp; Phone: +1 (347) 668-4584</div>
+
+            <!-- ── Header: logo+company left, company name+details right ── -->
+            <div class="inv-header-row">
+                <div class="inv-company-block">
+                    <div class="inv-logo-name-row">
+                        <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
+                    </div>
+                    <div class="inv-company-addr">
+                        11720 Amber Park Dr Ste 160<br>
+                        Alpharetta, GA 30009<br>
+                        DOT: 7521000<br>
+                        Phone: +1 (347) 668-4584
+                    </div>
+                </div>
+                <div class="inv-driver-block">
+                    <h2>${co.name || 'Company'}</h2>
+                    <p>Company Statement</p>
+                    <p>${co.address || ''}${co.city ? ', ' + co.city : ''}</p>
+                    <p>DOT: ${co.dotNumber || '—'} &nbsp;&nbsp; Tel: ${co.phone || '—'}</p>
                 </div>
             </div>
-            <div class="inv-view-hdr">
-                <h2>${co.name || 'Company'}</h2>
-                <p>${co.address || ''}${co.city ? ', ' + co.city : ''}</p>
-                <p>US DOT: ${co.dotNumber || '—'} &nbsp;&nbsp; MC/ICC: ${co.mcNumber || '—'} &nbsp;&nbsp; Tel: ${co.phone || '—'}</p>
-            </div>
+
+            <!-- ── Invoice meta ── -->
             <div class="inv-meta">
-                <div><strong>Invoice #:</strong> CI-${inv.id}<br><strong>Date:</strong> ${inv.date}<br><strong>Type:</strong> Company Invoice</div>
-                <div><strong>Total Jobs:</strong> ${jobs.length}<br><strong>Total CF:</strong> ${totalCF}<br><strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}</div>
+                <div>
+                    <strong>Invoice #:</strong> CI-${inv.id}<br>
+                    <strong>Date:</strong> ${inv.date}<br>
+                    <strong>Type:</strong> Company Invoice
+                </div>
+                <div style="text-align:right;">
+                    <strong>Total Jobs:</strong> ${jobs.length}<br>
+                    <strong>Total CF:</strong> ${totalCF}<br>
+                    <strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}
+                </div>
             </div>
+
+            <!-- ── Jobs table ── -->
             <div style="overflow-x:auto;">
             <table class="inv-table">
-                <thead><tr><th>Job #</th><th>Driver</th><th>Customer</th><th>From</th><th>To</th><th>CF</th><th>Rate</th><th>Total</th><th>Bal. Due</th><th>New Bal.</th><th>Remarks</th></tr></thead>
+                <thead><tr>
+                    <th>Driver</th><th>Job #</th><th>Customer</th>
+                    <th>From</th><th>To</th><th>CF</th><th>Rate</th>
+                    <th>Total</th><th>Bal. Due</th><th>Original Bal.</th><th>Remarks</th>
+                </tr></thead>
                 <tbody>
                     ${rows}
                     <tr class="inv-total-row">
                         <td colspan="5"><strong>TOTALS</strong></td>
-                        <td><strong>${totalCF}</strong></td><td></td>
+                        <td><strong>${totalCF}</strong></td>
+                        <td></td>
                         <td><strong>$${totalAmt.toFixed(2)}</strong></td>
                         <td><strong>$${totalBal.toFixed(2)}</strong></td>
-                        <td><strong>$${totalNewBal.toFixed(2)}</strong></td><td></td>
+                        <td><strong>$${totalNewBal.toFixed(2)}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
             </div>
+
+            <!-- ── Summary (right-aligned) ── -->
             <div class="inv-summary" style="margin-top:20px;">
-                <div class="inv-summary-row"><span>Subtotal:</span><span>$${(inv.subtotal || 0).toFixed(2)}</span></div>
-                <div class="inv-summary-row"><span>Carrier Fee (10%):</span><span>$${(inv.carrierFee || 0).toFixed(2)}</span></div>
-                <div class="inv-summary-row"><span>TOTAL DUE:</span><span>$${(inv.total || 0).toFixed(2)}</span></div>
+                <div class="inv-summary-row">
+                    <span>Subtotal <em style="font-size:11px;font-weight:400;">(Total table value)</em></span>
+                    <span>$${(inv.subtotal || 0).toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Carrier Fee <em style="font-size:11px;font-weight:400;">(Bal. Due total)</em></span>
+                    <span>$${(inv.carrierFee || 0).toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Labor Cost</span>
+                    <span>$${laborCost.toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>Pads</span>
+                    <span>$${pads.toFixed(2)}</span>
+                </div>
+                <div class="inv-summary-row">
+                    <span>TOTAL DUE</span>
+                    <span>$${(inv.total || 0).toFixed(2)}</span>
+                </div>
             </div>
-            <div style="display:flex;gap:40px;margin-top:40px;">
-                <div style="flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Authorized Signature</div>
-                <div style="flex:0.4;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;">Date</div>
+
+            <!-- ── Footer: Remarks left, Signature right ── -->
+            <div class="inv-footer-row">
+                <div class="inv-footer-cell"><strong>Remarks</strong></div>
+                <div class="inv-footer-cell" style="text-align:right;"><strong>Signature</strong></div>
             </div>
         </div>`;
 }
@@ -363,26 +428,37 @@ function invoiceInlineCSSText() {
         h2{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif !important;font-weight:700;}
         strong,b{font-weight:700 !important;}
         .inv-view{background:#fff;color:#111;padding:28px;}
-        .inv-brand-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
-        .inv-brand-logo{height:64px;width:auto;object-fit:contain;}
-        .inv-brand-addr{text-align:right;font-size:12px;color:#444;line-height:1.8;}
-        .inv-view-hdr{text-align:center;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:16px;}
-        .inv-view-hdr h2{font-size:24px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
-        .inv-view-hdr p{font-size:12px;color:#444;margin-top:3px;}
-        .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;}
-        .inv-meta div{line-height:1.8;}
+
+        /* ── Header row ── */
+        .inv-header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid #e2e8f0;}
+        .inv-company-block{display:flex;flex-direction:column;gap:8px;}
+        .inv-logo-name-row{display:flex;align-items:center;gap:10px;}
+        .inv-brand-logo{height:56px;width:auto;object-fit:contain;}
+        .inv-company-addr{font-size:12px;color:#444;line-height:1.8;margin-top:4px;}
+        .inv-driver-block{text-align:right;}
+        .inv-driver-block h2{font-size:26px;font-weight:700;letter-spacing:.02em;}
+        .inv-driver-block p{font-size:12px;color:#444;margin-top:4px;}
+
+        /* ── Meta row ── */
+        .inv-meta{display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;margin-bottom:18px;padding:12px 14px;border:1px solid #ddd;background:#f9fafb;}
+        .inv-meta div{line-height:1.9;}
+
+        /* ── Table ── */
         .inv-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:18px;}
         .inv-table th{background:#1e293b;color:#fff;padding:8px 7px;text-align:left;border:1px solid #555;white-space:nowrap;font-weight:700;}
         .inv-table td{border:1px solid #bbb;padding:7px;vertical-align:top;}
         .inv-table tbody tr:nth-child(even){background:#f5f8ff;}
         .inv-total-row td{background:#e8edf5;font-weight:700;border-top:2px solid #333;}
-        .inv-summary{margin-left:auto;width:320px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
+
+        /* ── Summary box ── */
+        .inv-summary{margin-left:auto;width:360px;border:1px solid #ccc;font-size:13px;margin-top:20px;}
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .inv-summary-row:last-child span{color:#fff !important;}
-        .sig{display:flex;gap:40px;margin-top:40px;}
-        .sig-line{flex:1;border-top:2px solid #333;padding-top:6px;font-size:12px;color:#555;}
-        .sig-line.date{flex:0.4;}
+
+        /* ── Footer ── */
+        .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
+        .inv-footer-cell{font-size:14px;font-weight:700;color:#111;}
     `;
 }
 
