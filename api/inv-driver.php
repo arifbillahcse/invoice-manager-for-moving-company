@@ -5,6 +5,12 @@ require_once '../includes/auth-api.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $db     = getDB();
 
+// Auto-migrate: add paid columns if they don't exist yet
+try {
+    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0");
+    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL");
+} catch (PDOException $e) { /* already exists */ }
+
 // ── GET: list all driver invoices ─────────────
 if ($method === 'GET') {
     $invoices = $db->query(
