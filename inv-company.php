@@ -73,6 +73,10 @@ include 'includes/header.php';
                     <span>Pads:</span>
                     <input type="number" id="coPads" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
                 </div>
+                <div class="summary-row">
+                    <span>Paid:</span>
+                    <input type="number" id="coPaid" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                </div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
             </div>
 
@@ -175,6 +179,7 @@ function editCoInvoice(id) {
     document.getElementById('coInvDate').value    = inv.date;
     document.getElementById('coLaborCost').value  = inv.laborCost || '';
     document.getElementById('coPads').value       = inv.pads || '';
+    document.getElementById('coPaid').value       = inv.paid || '';
     populateCoCompanySelect(inv.companyId);
     coJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyCoJob()]));
     renderCoJobRows();
@@ -230,9 +235,10 @@ function updateCoSummary() {
     const fee   = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
     const labor = parseFloat(document.getElementById('coLaborCost').value) || 0;
     const pads  = parseFloat(document.getElementById('coPads').value) || 0;
+    const paid  = parseFloat(document.getElementById('coPaid').value) || 0;
     document.getElementById('coSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('coCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('coTotal').textContent      = '$' + (sub + fee + labor + pads).toFixed(2);
+    document.getElementById('coTotal').textContent      = '$' + (sub + fee + labor + pads - paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -247,9 +253,10 @@ async function saveCoInvoice(e) {
     const fee     = coJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
     const labor   = parseFloat(document.getElementById('coLaborCost').value) || 0;
     const pads    = parseFloat(document.getElementById('coPads').value) || 0;
+    const paid    = parseFloat(document.getElementById('coPaid').value) || 0;
     const date    = document.getElementById('coInvDate').value;
     const items   = JSON.parse(JSON.stringify(coJobRows));
-    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, total: sub + fee + labor + pads };
+    const payload = { companyId: cid, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads - paid };
 
     try {
         if (editingCoInvId) {
@@ -313,6 +320,7 @@ function buildCoInvoiceHtml(id) {
 
     const laborCost = inv.laborCost || 0;
     const pads      = inv.pads || 0;
+    const paid      = inv.paid || 0;
 
     return `
         <div class="inv-view">
@@ -393,6 +401,10 @@ function buildCoInvoiceHtml(id) {
                     <span>Pads</span>
                     <span>$${pads.toFixed(2)}</span>
                 </div>
+                ${paid > 0 ? `<div class="inv-summary-row inv-paid-row">
+                    <span>Paid</span>
+                    <span>− $${paid.toFixed(2)}</span>
+                </div>` : ''}
                 <div class="inv-summary-row">
                     <span>TOTAL DUE</span>
                     <span>$${(inv.total || 0).toFixed(2)}</span>
@@ -455,6 +467,7 @@ function invoiceInlineCSSText() {
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .inv-summary-row:last-child span{color:#fff !important;}
+        .inv-paid-row{background:#f0fdf4;color:#166534;font-weight:600;}
 
         /* ── Footer ── */
         .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}

@@ -73,6 +73,10 @@ include 'includes/header.php';
                     <span>Pads:</span>
                     <input type="number" id="drPads" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateDrSummary()">
                 </div>
+                <div class="summary-row">
+                    <span>Paid:</span>
+                    <input type="number" id="drPaid" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                </div>
                 <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
             </div>
 
@@ -177,6 +181,7 @@ function editDrInvoice(id) {
     document.getElementById('drInvDate').value = inv.date;
     document.getElementById('drLaborCost').value = inv.laborCost || '';
     document.getElementById('drPads').value      = inv.pads || '';
+    document.getElementById('drPaid').value      = inv.paid || '';
     populateDrDriverSelect(inv.driverId);
     drJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyDrJob()]));
     renderDrJobRows();
@@ -232,9 +237,10 @@ function updateDrSummary() {
     const fee   = drJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
     const labor = parseFloat(document.getElementById('drLaborCost').value) || 0;
     const pads  = parseFloat(document.getElementById('drPads').value) || 0;
+    const paid  = parseFloat(document.getElementById('drPaid').value) || 0;
     document.getElementById('drSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('drCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads).toFixed(2);
+    document.getElementById('drTotal').textContent      = '$' + (sub + fee + labor + pads - paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -249,9 +255,10 @@ async function saveDrInvoice(e) {
     const fee     = drJobRows.reduce((s, r) => s + (r.balanceDue || 0), 0);
     const labor   = parseFloat(document.getElementById('drLaborCost').value) || 0;
     const pads    = parseFloat(document.getElementById('drPads').value) || 0;
+    const paid    = parseFloat(document.getElementById('drPaid').value) || 0;
     const date    = document.getElementById('drInvDate').value;
     const items   = JSON.parse(JSON.stringify(drJobRows));
-    const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, total: sub + fee + labor + pads };
+    const payload = { driverId: did, date, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub + fee + labor + pads - paid };
 
     try {
         let drInvId;
@@ -375,6 +382,7 @@ function buildDrInvoiceHtml(id) {
 
     const laborCost = inv.laborCost || 0;
     const pads      = inv.pads || 0;
+    const paid      = inv.paid || 0;
 
     return `
         <div class="inv-view">
@@ -454,6 +462,10 @@ function buildDrInvoiceHtml(id) {
                     <span>Pads</span>
                     <span>$${pads.toFixed(2)}</span>
                 </div>
+                ${paid > 0 ? `<div class="inv-summary-row inv-paid-row">
+                    <span>Paid</span>
+                    <span>− $${paid.toFixed(2)}</span>
+                </div>` : ''}
                 <div class="inv-summary-row">
                     <span>TOTAL DUE</span>
                     <span>$${(inv.total || 0).toFixed(2)}</span>
@@ -516,6 +528,7 @@ function invoiceInlineCSSText() {
         .inv-summary-row{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid #ddd;}
         .inv-summary-row:last-child{background:#1e293b;color:#fff;font-size:15px;font-weight:700;border-bottom:none;}
         .inv-summary-row:last-child span{color:#fff !important;}
+        .inv-paid-row{background:#f0fdf4;color:#166534;font-weight:600;}
 
         /* ── Footer ── */
         .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
