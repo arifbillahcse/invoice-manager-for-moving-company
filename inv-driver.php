@@ -324,10 +324,6 @@ function buildDrInvoiceHtml(id) {
                 <div class="inv-company-block">
                     <div class="inv-logo-name-row">
                         <img src="assets/bh-logo.png" alt="BH Logo" class="inv-brand-logo">
-                        <div class="inv-company-name-block">
-                            <strong>Bh Relocation</strong>
-                            <span>Moving forward</span>
-                        </div>
                     </div>
                     <div class="inv-company-addr">
                         11720 Amber Park Dr Ste 160<br>
@@ -439,9 +435,6 @@ function invoiceInlineCSSText() {
         .inv-company-block{display:flex;flex-direction:column;gap:8px;}
         .inv-logo-name-row{display:flex;align-items:center;gap:10px;}
         .inv-brand-logo{height:56px;width:auto;object-fit:contain;}
-        .inv-company-name-block{display:flex;flex-direction:column;line-height:1.4;}
-        .inv-company-name-block strong{font-size:16px;font-weight:700;}
-        .inv-company-name-block span{font-size:11px;color:#666;}
         .inv-company-addr{font-size:12px;color:#444;line-height:1.8;margin-top:4px;}
         .inv-driver-block{text-align:right;}
         .inv-driver-block h2{font-size:26px;font-weight:700;letter-spacing:.02em;}

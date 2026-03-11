@@ -236,9 +236,6 @@ tr:hover { background: var(--bg3); }
 .inv-company-block { display: flex; flex-direction: column; gap: 8px; }
 .inv-logo-name-row { display: flex; align-items: center; gap: 10px; }
 .inv-brand-logo { height: 56px; width: auto; object-fit: contain; }
-.inv-company-name-block { display: flex; flex-direction: column; line-height: 1.4; }
-.inv-company-name-block strong { font-size: 16px; font-weight: 700; }
-.inv-company-name-block span { font-size: 11px; color: #666; }
 .inv-company-addr { font-size: 12px; color: #444; line-height: 1.8; margin-top: 4px; }
 .inv-driver-block { text-align: right; }
 .inv-driver-block h2 { font-size: 26px; font-weight: 700; letter-spacing: .02em; }
