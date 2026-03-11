@@ -11,7 +11,6 @@ include 'includes/header.php';
             <div class="stat-card"        onclick="location.href='companies.php'"><div class="stat-value" id="statCompanies">0</div><div class="stat-label">Total Companies</div></div>
             <div class="stat-card green"  onclick="location.href='drivers.php'"  ><div class="stat-value" id="statDrivers">0</div><div class="stat-label">Total Drivers</div></div>
             <div class="stat-card purple"><div class="stat-value" id="statInvoices">0</div><div class="stat-label">Total Invoices</div></div>
-            <div class="stat-card amber"                                          ><div class="stat-value" id="statRevenue">$0</div><div class="stat-label">Total Revenue</div></div>
         </div>
         <h3 style="margin-bottom:15px;">Recent Invoices</h3>
         <div id="recentActivity"></div>
@@ -27,12 +26,9 @@ function renderPage() {
         ...driverInvoices.map(i  => ({ ...i, _type: 'DI' })),
     ].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
-    const totalRevenue = allInvoices.reduce((s, i) => s + (i.total || 0), 0);
-
     document.getElementById('statCompanies').textContent = companies.length;
     document.getElementById('statDrivers').textContent   = drivers.length;
     document.getElementById('statInvoices').textContent  = allInvoices.length;
-    document.getElementById('statRevenue').textContent   = '$' + totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const el = document.getElementById('recentActivity');
     if (!allInvoices.length) {
