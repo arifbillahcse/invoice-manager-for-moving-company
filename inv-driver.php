@@ -44,8 +44,8 @@ include 'includes/header.php';
                 <h4>📦 Jobs</h4>
                 <div class="line-items-scroll">
                     <div class="line-item-header-row-xl">
-                        <span>Job #</span>
                         <span>Company</span>
+                        <span>Job #</span>
                         <span>Customer</span>
                         <span>From</span>
                         <span>To</span>
@@ -53,7 +53,7 @@ include 'includes/header.php';
                         <span>Rate</span>
                         <span>Total</span>
                         <span>Bal. Due</span>
-                        <span>New Bal.</span>
+                        <span>Original Bal.</span>
                         <span>Remarks</span>
                         <span></span>
                     </div>
@@ -208,8 +208,8 @@ function renderDrJobRows() {
             companies.map(c => `<option value="${c.id}" ${c.id == r.companyId ? 'selected' : ''}>${c.name}</option>`).join('');
         return `
         <div class="line-item-row-xl">
-            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setDrJob(${i},'jobNumber',this.value)">
             <select onchange="setDrJob(${i},'companyId',this.value)">${companySel}</select>
+            <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setDrJob(${i},'jobNumber',this.value)">
             <input  type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setDrJob(${i},'customerName',this.value)">
             <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setDrJob(${i},'from',this.value)">
             <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setDrJob(${i},'to',this.value)">
@@ -217,7 +217,7 @@ function renderDrJobRows() {
             <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setDrJob(${i},'rate',this.value)" step="0.01" min="0">
             <div class="cell-total">$${total}</div>
             <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setDrJob(${i},'balanceDue',this.value)" step="0.01" min="0">
-            <input  type="number" placeholder="New Bal"  value="${r.newBalance || ''}"  onchange="setDrJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setDrJob(${i},'newBalance',this.value)" step="0.01" min="0">
             <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setDrJob(${i},'remarks',this.value)">
             ${drJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeDrJobRow(${i})">&#x2715;</button>`
@@ -299,8 +299,8 @@ function buildDrInvoiceHtml(id) {
     const rows = jobs.map(j => {
         const co = companies.find(c => c.id == j.companyId) || {};
         return `<tr>
-            <td>${j.jobNumber || ''}</td>
             <td>${co.name || '—'}</td>
+            <td>${j.jobNumber || ''}</td>
             <td>${j.customerName || ''}</td>
             <td>${j.from || ''}</td>
             <td>${j.to || ''}</td>
@@ -357,9 +357,9 @@ function buildDrInvoiceHtml(id) {
             <div style="overflow-x:auto;">
             <table class="inv-table">
                 <thead><tr>
-                    <th>Job #</th><th>Company</th><th>Customer</th>
+                    <th>Company</th><th>Job #</th><th>Customer</th>
                     <th>From</th><th>To</th><th>CF</th><th>Rate</th>
-                    <th>Total</th><th>Bal. Due</th><th>New Bal.</th><th>Remarks</th>
+                    <th>Total</th><th>Bal. Due</th><th>Original Bal.</th><th>Remarks</th>
                 </tr></thead>
                 <tbody>
                     ${rows}
