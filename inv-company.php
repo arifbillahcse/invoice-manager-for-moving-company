@@ -71,11 +71,11 @@ include 'includes/header.php';
                 <div class="summary-row"><span>Carrier Fee (Bal. Due total):</span><span id="coCarrierFee">$0.00</span></div>
                 <div class="summary-row">
                     <span>Labor Cost:</span>
-                    <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                    <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
                 </div>
                 <div class="summary-row">
                     <span>Pads:</span>
-                    <input type="number" id="coPads" placeholder="0.00" step="0.01" min="0" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                    <input type="number" id="coPads" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
                 </div>
                 <div class="summary-row">
                     <span>Paid:</span>
