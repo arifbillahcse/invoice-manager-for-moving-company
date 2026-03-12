@@ -60,6 +60,7 @@ include 'includes/header.php';
                         <span>Company</span>
                         <span>Job #</span>
                         <span>Customer</span>
+                        <span>Phone</span>
                         <span>From</span>
                         <span>To</span>
                         <span>CF</span>
@@ -136,7 +137,7 @@ let drSearchCustomer = '';
 let drSelectDriver, drSelectCompany;
 
 function emptyDrJob() {
-    return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
+    return { jobNumber:'', companyId:'', customerName:'', phone:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
 }
 
 // ── Table render ─────────────────────────────
@@ -282,6 +283,7 @@ function renderDrJobRows() {
             <select onchange="setDrJob(${i},'companyId',this.value)">${companySel}</select>
             <input  type="text"   placeholder="Job #"    value="${esc(r.jobNumber)}"    onchange="setDrJob(${i},'jobNumber',this.value)">
             <input  type="text"   placeholder="Customer" value="${esc(r.customerName)}" onchange="setDrJob(${i},'customerName',this.value)">
+            <input  type="tel"    placeholder="Phone"    value="${esc(r.phone)}"        onchange="setDrJob(${i},'phone',this.value)">
             <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setDrJob(${i},'from',this.value)">
             <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setDrJob(${i},'to',this.value)">
             <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setDrJob(${i},'cubicFeet',this.value)" min="0">
@@ -437,6 +439,7 @@ function buildDrInvoiceHtml(id) {
             <td>${co.name || '—'}</td>
             <td>${j.jobNumber || ''}</td>
             <td>${j.customerName || ''}</td>
+            <td>${j.phone || ''}</td>
             <td>${j.from || ''}</td>
             <td>${j.to || ''}</td>
             <td>${j.cubicFeet || 0}</td>
@@ -494,14 +497,14 @@ function buildDrInvoiceHtml(id) {
             <div style="overflow-x:auto;">
             <table class="inv-table">
                 <thead><tr>
-                    <th>Company</th><th>Job #</th><th>Customer</th>
+                    <th>Company</th><th>Job #</th><th>Customer</th><th>Phone</th>
                     <th>From</th><th>To</th><th>CF</th><th>Rate</th>
                     <th>Total</th><th>Bal. Due</th><th>Original Bal.</th><th>Remarks</th>
                 </tr></thead>
                 <tbody>
                     ${rows}
                     <tr class="inv-total-row">
-                        <td colspan="5"><strong>TOTALS</strong></td>
+                        <td colspan="6"><strong>TOTALS</strong></td>
                         <td><strong>${totalCF}</strong></td>
                         <td></td>
                         <td><strong>$${totalAmt.toFixed(2)}</strong></td>

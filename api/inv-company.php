@@ -12,6 +12,7 @@ try {
     $db->exec("ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS labor_cost      DECIMAL(12,2) DEFAULT 0");
     $db->exec("ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS pads            DECIMAL(12,2) DEFAULT 0");
     $db->exec("ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS invoice_remarks TEXT          DEFAULT ''");
+    $db->exec("ALTER TABLE company_invoice_items ADD COLUMN IF NOT EXISTS phone VARCHAR(30) DEFAULT ''");
 } catch (PDOException $e) { /* already exists */ }
 
 // ── GET: list all company invoices ────────────
@@ -118,9 +119,9 @@ if ($method === 'DELETE') {
 function insertCoItems(PDO $db, int $invoiceId, array $items): void {
     $stmt = $db->prepare(
         "INSERT INTO company_invoice_items
-         (invoice_id, sort_order, job_number, driver_id, customer_name,
+         (invoice_id, sort_order, job_number, driver_id, customer_name, phone,
           from_location, to_location, cubic_feet, rate, balance_due, new_balance, remarks)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     foreach ($items as $i => $r) {
         $stmt->execute([
@@ -129,6 +130,7 @@ function insertCoItems(PDO $db, int $invoiceId, array $items): void {
             $r['jobNumber']    ?? '',
             ($r['driverId'] ? (int)$r['driverId'] : null),
             $r['customerName'] ?? '',
+            $r['phone']        ?? '',
             $r['from']         ?? '',
             $r['to']           ?? '',
             (float)($r['cubicFeet']  ?? 0),
@@ -145,6 +147,7 @@ function mapCoItem(array $row): array {
         'jobNumber'    => $row['job_number']    ?? '',
         'driverId'     => $row['driver_id'] ? (int)$row['driver_id'] : '',
         'customerName' => $row['customer_name'] ?? '',
+        'phone'        => $row['phone']         ?? '',
         'from'         => $row['from_location'] ?? '',
         'to'           => $row['to_location']   ?? '',
         'cubicFeet'    => (float)$row['cubic_feet'],

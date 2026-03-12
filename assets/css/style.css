@@ -291,17 +291,17 @@ tr:hover { background: var(--bg3); }
 .inv-footer-row { display: flex; justify-content: space-between; margin-top: 48px; padding-top: 14px; border-top: 2px solid #333; }
 .inv-footer-cell { font-size: 14px; font-weight: 700; color: #111; }
 
-/* ── XL Line Items (12 cols: +Driver or +Company) ── */
+/* ── XL Line Items (13 cols: +Driver or +Company, +Phone) ── */
 .line-item-header-row-xl {
     display: grid;
-    grid-template-columns: 1.1fr 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
-    gap: 7px; margin-bottom: 6px; padding: 0 2px; min-width: 1150px;
+    grid-template-columns: 1.1fr 0.6fr 1.1fr 0.9fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    gap: 7px; margin-bottom: 6px; padding: 0 2px; min-width: 1280px;
 }
 .line-item-header-row-xl span { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .line-item-row-xl {
     display: grid;
-    grid-template-columns: 1.1fr 0.6fr 1.1fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
-    gap: 7px; margin-bottom: 7px; align-items: center; min-width: 1150px;
+    grid-template-columns: 1.1fr 0.6fr 1.1fr 0.9fr 1.1fr 1.1fr 0.6fr 0.6fr 0.75fr 0.8fr 0.8fr 1.2fr 50px;
+    gap: 7px; margin-bottom: 7px; align-items: center; min-width: 1280px;
 }
 .line-item-row-xl input,
 .line-item-row-xl select {

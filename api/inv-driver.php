@@ -12,6 +12,7 @@ try {
     $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS labor_cost      DECIMAL(12,2) DEFAULT 0");
     $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS pads            DECIMAL(12,2) DEFAULT 0");
     $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS invoice_remarks TEXT          DEFAULT ''");
+    $db->exec("ALTER TABLE driver_invoice_items ADD COLUMN IF NOT EXISTS phone VARCHAR(30) DEFAULT ''");
 } catch (PDOException $e) { /* already exists */ }
 
 // ── GET: list all driver invoices ─────────────
@@ -116,9 +117,9 @@ if ($method === 'DELETE') {
 function insertDrItems(PDO $db, int $invoiceId, array $items): void {
     $stmt = $db->prepare(
         "INSERT INTO driver_invoice_items
-         (invoice_id, sort_order, job_number, company_id, customer_name,
+         (invoice_id, sort_order, job_number, company_id, customer_name, phone,
           from_location, to_location, cubic_feet, rate, balance_due, new_balance, remarks)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     foreach ($items as $i => $r) {
         $stmt->execute([
@@ -127,6 +128,7 @@ function insertDrItems(PDO $db, int $invoiceId, array $items): void {
             $r['jobNumber']    ?? '',
             ($r['companyId'] ? (int)$r['companyId'] : null),
             $r['customerName'] ?? '',
+            $r['phone']        ?? '',
             $r['from']         ?? '',
             $r['to']           ?? '',
             (float)($r['cubicFeet']  ?? 0),
@@ -143,6 +145,7 @@ function mapDrItem(array $row): array {
         'jobNumber'    => $row['job_number']    ?? '',
         'companyId'    => $row['company_id'] ? (int)$row['company_id'] : '',
         'customerName' => $row['customer_name'] ?? '',
+        'phone'        => $row['phone']         ?? '',
         'from'         => $row['from_location'] ?? '',
         'to'           => $row['to_location']   ?? '',
         'cubicFeet'    => (float)$row['cubic_feet'],
