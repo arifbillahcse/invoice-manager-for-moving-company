@@ -6,10 +6,14 @@ $db = getDB();
 $results = [];
 
 $stmts = [
-    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0",
-    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL",
-    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0",
-    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL",
+    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS paid       DECIMAL(12,2) DEFAULT 0",
+    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS paid_date  DATE          DEFAULT NULL",
+    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS labor_cost DECIMAL(12,2) DEFAULT 0",
+    "ALTER TABLE driver_invoices  ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0",
+    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS paid       DECIMAL(12,2) DEFAULT 0",
+    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS paid_date  DATE          DEFAULT NULL",
+    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS labor_cost DECIMAL(12,2) DEFAULT 0",
+    "ALTER TABLE company_invoices ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0",
 ];
 
 foreach ($stmts as $sql) {
