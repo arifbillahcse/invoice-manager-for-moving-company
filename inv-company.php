@@ -405,7 +405,7 @@ function buildCoInvoiceHtml(id) {
                     <div class="inv-company-addr">
                         11720 Amber Park Dr Ste 160<br>
                         Alpharetta, GA 30009<br>
-                        DOT: 7521000<br>
+                        DOT: 2521000<br>
                         Phone: +1 (347) 668-4584
                     </div>
                 </div>
