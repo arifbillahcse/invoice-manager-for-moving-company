@@ -490,8 +490,8 @@ function buildDrInvoiceHtml(id) {
             <!-- ── Footer: Remarks left, Signature right ── -->
             <div class="inv-footer-row">
                 <div class="inv-footer-cell">
+                    ${inv.invoiceRemarks ? `<div style="margin-bottom:6px;font-size:12px;font-weight:400;white-space:pre-wrap;">${inv.invoiceRemarks}</div>` : ''}
                     <strong>Remarks</strong>
-                    ${inv.invoiceRemarks ? `<div style="margin-top:6px;font-size:12px;font-weight:400;white-space:pre-wrap;">${inv.invoiceRemarks}</div>` : ''}
                 </div>
                 <div class="inv-footer-cell" style="text-align:right;"><strong>Signature</strong></div>
             </div>
@@ -551,8 +551,8 @@ function invoiceInlineCSSText() {
         .inv-charge-row{background:#fef2f2;color:#991b1b;font-weight:600;}
 
         /* ── Footer ── */
-        .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;padding-top:14px;border-top:2px solid #333;}
-        .inv-footer-cell{font-size:14px;font-weight:700;color:#111;}
+        .inv-footer-row{display:flex;justify-content:space-between;margin-top:48px;}
+        .inv-footer-cell{display:flex;flex-direction:column;justify-content:flex-end;font-size:14px;font-weight:700;color:#111;}
     `;
 }
 
