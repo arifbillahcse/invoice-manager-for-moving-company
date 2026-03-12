@@ -10,6 +10,13 @@ include 'includes/header.php';
         <div class="btn-row">
             <button class="btn btn-success" onclick="openCompanyModal()">+ Add Company</button>
         </div>
+        <div class="filter-bar">
+            <input type="text" id="coSearchName"  placeholder="🔍 Search company..."  oninput="applyCompanyFilters()">
+            <input type="text" id="coSearchPhone" placeholder="🔍 Search phone..."     oninput="applyCompanyFilters()">
+            <input type="text" id="coSearchDot"   placeholder="🔍 Search DOT #..."     oninput="applyCompanyFilters()">
+            <button class="btn-clear" onclick="clearCompanyFilters()">✕ Clear</button>
+            <span class="filter-count" id="coFilterCount"></span>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Company Name</th><th>Address</th><th>City</th><th>Phone</th><th>DOT #</th><th>MC #</th><th>Actions</th></tr></thead>
@@ -54,16 +61,50 @@ include 'includes/header.php';
 const PAGE_SIZE = 30;
 let currentPage = 1;
 
+let coSearchName  = '';
+let coSearchPhone = '';
+let coSearchDot   = '';
+
+function getFilteredCompanies() {
+    return companies.filter(c => {
+        if (coSearchName  && !(c.name      || '').toLowerCase().includes(coSearchName))  return false;
+        if (coSearchPhone && !(c.phone     || '').toLowerCase().includes(coSearchPhone)) return false;
+        if (coSearchDot   && !(c.dotNumber || '').toLowerCase().includes(coSearchDot))   return false;
+        return true;
+    });
+}
+
+function applyCompanyFilters() {
+    coSearchName  = document.getElementById('coSearchName').value.toLowerCase().trim();
+    coSearchPhone = document.getElementById('coSearchPhone').value.toLowerCase().trim();
+    coSearchDot   = document.getElementById('coSearchDot').value.toLowerCase().trim();
+    currentPage = 1;
+    renderPage();
+}
+
+function clearCompanyFilters() {
+    document.getElementById('coSearchName').value  = '';
+    document.getElementById('coSearchPhone').value = '';
+    document.getElementById('coSearchDot').value   = '';
+    coSearchName = ''; coSearchPhone = ''; coSearchDot = '';
+    currentPage = 1;
+    renderPage();
+}
+
 function renderPage() {
-    const tb = document.getElementById('companiesTbody');
-    if (!companies.length) {
-        tb.innerHTML = '<tr><td colspan="7" class="empty">No companies yet. Click "+ Add Company" to start.</td></tr>';
+    const tb       = document.getElementById('companiesTbody');
+    const filtered = getFilteredCompanies();
+    const total    = filtered.length;
+    document.getElementById('coFilterCount').textContent = (coSearchName || coSearchPhone || coSearchDot)
+        ? `${total} result${total !== 1 ? 's' : ''}` : '';
+    if (!total) {
+        tb.innerHTML = `<tr><td colspan="7" class="empty">${companies.length ? 'No companies match the current search.' : 'No companies yet. Click "+ Add Company" to start.'}</td></tr>`;
         renderPagination('companiesPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(companies.length / PAGE_SIZE)));
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(total / PAGE_SIZE)));
     const start    = (currentPage - 1) * PAGE_SIZE;
-    const pageData = companies.slice(start, start + PAGE_SIZE);
+    const pageData = filtered.slice(start, start + PAGE_SIZE);
     tb.innerHTML = pageData.map(c => `
         <tr>
             <td><strong>${c.name}</strong></td>
@@ -77,7 +118,7 @@ function renderPage() {
                 <button class="btn-xs btn-xs-delete" onclick="deleteCompany(${c.id})">🗑️ Delete</button>
             </div></td>
         </tr>`).join('');
-    renderPagination('companiesPagination', companies.length, currentPage, PAGE_SIZE, p => {
+    renderPagination('companiesPagination', total, currentPage, PAGE_SIZE, p => {
         currentPage = p;
         renderPage();
     });

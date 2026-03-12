@@ -10,6 +10,13 @@ include 'includes/header.php';
         <div class="btn-row">
             <button class="btn btn-success" onclick="openDriverModal()">+ Add Driver</button>
         </div>
+        <div class="filter-bar">
+            <input type="text" id="drvrSearchName"    placeholder="🔍 Search full name..."  oninput="applyDriverFilters()">
+            <input type="text" id="drvrSearchPhone"   placeholder="🔍 Search phone..."       oninput="applyDriverFilters()">
+            <input type="text" id="drvrSearchLicense" placeholder="🔍 Search license #..."   oninput="applyDriverFilters()">
+            <button class="btn-clear" onclick="clearDriverFilters()">✕ Clear</button>
+            <span class="filter-count" id="drvrFilterCount"></span>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Full Name</th><th>Phone</th><th>License #</th><th>Actions</th></tr></thead>
@@ -50,16 +57,51 @@ include 'includes/header.php';
 const PAGE_SIZE = 30;
 let currentPage = 1;
 
+let drvrSearchName    = '';
+let drvrSearchPhone   = '';
+let drvrSearchLicense = '';
+
+function getFilteredDrivers() {
+    return drivers.filter(d => {
+        const fullName = (d.firstName + ' ' + d.lastName).toLowerCase();
+        if (drvrSearchName    && !fullName.includes(drvrSearchName))                      return false;
+        if (drvrSearchPhone   && !(d.phone   || '').toLowerCase().includes(drvrSearchPhone))   return false;
+        if (drvrSearchLicense && !(d.license || '').toLowerCase().includes(drvrSearchLicense)) return false;
+        return true;
+    });
+}
+
+function applyDriverFilters() {
+    drvrSearchName    = document.getElementById('drvrSearchName').value.toLowerCase().trim();
+    drvrSearchPhone   = document.getElementById('drvrSearchPhone').value.toLowerCase().trim();
+    drvrSearchLicense = document.getElementById('drvrSearchLicense').value.toLowerCase().trim();
+    currentPage = 1;
+    renderPage();
+}
+
+function clearDriverFilters() {
+    document.getElementById('drvrSearchName').value    = '';
+    document.getElementById('drvrSearchPhone').value   = '';
+    document.getElementById('drvrSearchLicense').value = '';
+    drvrSearchName = ''; drvrSearchPhone = ''; drvrSearchLicense = '';
+    currentPage = 1;
+    renderPage();
+}
+
 function renderPage() {
-    const tb = document.getElementById('driversTbody');
-    if (!drivers.length) {
-        tb.innerHTML = '<tr><td colspan="4" class="empty">No drivers yet. Click "+ Add Driver" to start.</td></tr>';
+    const tb       = document.getElementById('driversTbody');
+    const filtered = getFilteredDrivers();
+    const total    = filtered.length;
+    document.getElementById('drvrFilterCount').textContent = (drvrSearchName || drvrSearchPhone || drvrSearchLicense)
+        ? `${total} result${total !== 1 ? 's' : ''}` : '';
+    if (!total) {
+        tb.innerHTML = `<tr><td colspan="4" class="empty">${drivers.length ? 'No drivers match the current search.' : 'No drivers yet. Click "+ Add Driver" to start.'}</td></tr>`;
         renderPagination('driversPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(drivers.length / PAGE_SIZE)));
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(total / PAGE_SIZE)));
     const start    = (currentPage - 1) * PAGE_SIZE;
-    const pageData = drivers.slice(start, start + PAGE_SIZE);
+    const pageData = filtered.slice(start, start + PAGE_SIZE);
     tb.innerHTML = pageData.map(d => `
         <tr>
             <td><strong>${d.firstName} ${d.lastName}</strong></td>
@@ -70,7 +112,7 @@ function renderPage() {
                 <button class="btn-xs btn-xs-delete" onclick="deleteDriver(${d.id})">🗑️ Delete</button>
             </div></td>
         </tr>`).join('');
-    renderPagination('driversPagination', drivers.length, currentPage, PAGE_SIZE, p => {
+    renderPagination('driversPagination', total, currentPage, PAGE_SIZE, p => {
         currentPage = p;
         renderPage();
     });
