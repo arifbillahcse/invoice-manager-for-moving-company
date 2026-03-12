@@ -11,12 +11,10 @@ include 'includes/header.php';
             <button class="btn btn-success" onclick="openCoInvModal()">+ Create Invoice</button>
         </div>
         <div class="filter-bar">
-            <select id="coFilterCompany" onchange="applyCoFilters()">
-                <option value="">All Companies</option>
-            </select>
-            <select id="coFilterDriver" onchange="applyCoFilters()">
-                <option value="">All Drivers</option>
-            </select>
+            <div id="coFilterCompanyWrap" class="ss-wrap"></div>
+            <input type="hidden" id="coFilterCompany">
+            <div id="coFilterDriverWrap" class="ss-wrap"></div>
+            <input type="hidden" id="coFilterDriver">
             <input type="text" id="coSearchCustomer" placeholder="🔍 Search customer..." oninput="applyCoFilters()">
             <button class="btn-clear" onclick="clearCoFilters()">✕ Clear</button>
             <span class="filter-count" id="coFilterCount"></span>
@@ -134,6 +132,7 @@ let currentViewId  = null;
 let coFilterCompany  = '';
 let coFilterDriver   = '';
 let coSearchCustomer = '';
+let coSelectCompany, coSelectDriver;
 
 function emptyCoJob() {
     return { jobNumber:'', driverId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
@@ -165,8 +164,8 @@ function applyCoFilters() {
 }
 
 function clearCoFilters() {
-    document.getElementById('coFilterCompany').value  = '';
-    document.getElementById('coFilterDriver').value   = '';
+    coSelectCompany.reset();
+    coSelectDriver.reset();
     document.getElementById('coSearchCustomer').value = '';
     coFilterCompany = ''; coFilterDriver = ''; coSearchCustomer = '';
     currentPage = 1;
@@ -174,10 +173,10 @@ function clearCoFilters() {
 }
 
 function populateCoFilterDropdowns() {
-    const companySel = document.getElementById('coFilterCompany');
-    const driverSel  = document.getElementById('coFilterDriver');
-    companySel.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    driverSel.innerHTML  = '<option value="">All Drivers</option>'  + drivers.map(d  => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
+    const companyOpts = [{ value: '', label: 'All Companies' }].concat(companies.map(c => ({ value: c.id,  label: c.name })));
+    const driverOpts  = [{ value: '', label: 'All Drivers' }]  .concat(drivers.map(d  => ({ value: d.id,  label: `${d.firstName} ${d.lastName}` })));
+    coSelectCompany = makeSearchableSelect(document.getElementById('coFilterCompanyWrap'), document.getElementById('coFilterCompany'), companyOpts, applyCoFilters);
+    coSelectDriver  = makeSearchableSelect(document.getElementById('coFilterDriverWrap'),  document.getElementById('coFilterDriver'),  driverOpts,  applyCoFilters);
 }
 
 function renderPage() {

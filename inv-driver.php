@@ -11,12 +11,10 @@ include 'includes/header.php';
             <button class="btn btn-success" onclick="openDrInvModal()">+ Create Invoice</button>
         </div>
         <div class="filter-bar">
-            <select id="drFilterDriver" onchange="applyDrFilters()">
-                <option value="">All Drivers</option>
-            </select>
-            <select id="drFilterCompany" onchange="applyDrFilters()">
-                <option value="">All Companies</option>
-            </select>
+            <div id="drFilterDriverWrap" class="ss-wrap"></div>
+            <input type="hidden" id="drFilterDriver">
+            <div id="drFilterCompanyWrap" class="ss-wrap"></div>
+            <input type="hidden" id="drFilterCompany">
             <input type="text" id="drSearchCustomer" placeholder="🔍 Search customer..." oninput="applyDrFilters()">
             <button class="btn-clear" onclick="clearDrFilters()">✕ Clear</button>
             <span class="filter-count" id="drFilterCount"></span>
@@ -135,6 +133,7 @@ let currentViewId  = null;
 let drFilterDriver   = '';
 let drFilterCompany  = '';
 let drSearchCustomer = '';
+let drSelectDriver, drSelectCompany;
 
 function emptyDrJob() {
     return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
@@ -166,8 +165,8 @@ function applyDrFilters() {
 }
 
 function clearDrFilters() {
-    document.getElementById('drFilterDriver').value   = '';
-    document.getElementById('drFilterCompany').value  = '';
+    drSelectDriver.reset();
+    drSelectCompany.reset();
     document.getElementById('drSearchCustomer').value = '';
     drFilterDriver = ''; drFilterCompany = ''; drSearchCustomer = '';
     currentPage = 1;
@@ -175,10 +174,10 @@ function clearDrFilters() {
 }
 
 function populateDrFilterDropdowns() {
-    const driverSel  = document.getElementById('drFilterDriver');
-    const companySel = document.getElementById('drFilterCompany');
-    driverSel.innerHTML  = '<option value="">All Drivers</option>'  + drivers.map(d  => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
-    companySel.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    const driverOpts  = [{ value: '', label: 'All Drivers' }]  .concat(drivers.map(d  => ({ value: d.id,  label: `${d.firstName} ${d.lastName}` })));
+    const companyOpts = [{ value: '', label: 'All Companies' }].concat(companies.map(c => ({ value: c.id,  label: c.name })));
+    drSelectDriver  = makeSearchableSelect(document.getElementById('drFilterDriverWrap'),  document.getElementById('drFilterDriver'),  driverOpts,  applyDrFilters);
+    drSelectCompany = makeSearchableSelect(document.getElementById('drFilterCompanyWrap'), document.getElementById('drFilterCompany'), companyOpts, applyDrFilters);
 }
 
 function renderPage() {

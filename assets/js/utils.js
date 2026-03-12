@@ -88,6 +88,56 @@ function downloadPdf(html, filename) {
         });
 }
 
+// ── Searchable Select ─────────────────────────
+// Usage: makeSearchableSelect(wrapEl, hiddenEl, [{value, label}], onChange)
+// Returns { reset(), setValue(val) }
+function makeSearchableSelect(wrapEl, hiddenEl, options, onChange) {
+    let selVal   = '';
+    let selLabel = options[0]?.label || '';
+
+    wrapEl.innerHTML = `
+        <div class="ss-face"></div>
+        <div class="ss-dropdown">
+            <input type="text" class="ss-search" placeholder="🔍 Search...">
+            <div class="ss-list"></div>
+        </div>`;
+
+    const face   = wrapEl.querySelector('.ss-face');
+    const search = wrapEl.querySelector('.ss-search');
+    const list   = wrapEl.querySelector('.ss-list');
+
+    function setFace() { face.textContent = selLabel; }
+    setFace();
+
+    function renderList(q) {
+        const q2  = q.toLowerCase();
+        const vis = q2 ? options.filter(o => o.label.toLowerCase().includes(q2)) : options;
+        list.innerHTML = vis.length
+            ? vis.map(o => `<div class="ss-opt${o.value == selVal ? ' ss-sel' : ''}" data-value="${o.value}">${o.label}</div>`).join('')
+            : '<div class="ss-empty">No results</div>';
+    }
+
+    function open()  { wrapEl.classList.add('ss-open'); search.value = ''; renderList(''); search.focus(); }
+    function close() { wrapEl.classList.remove('ss-open'); }
+
+    face.addEventListener('click',   e => { e.stopPropagation(); wrapEl.classList.contains('ss-open') ? close() : open(); });
+    search.addEventListener('input', () => renderList(search.value));
+    search.addEventListener('click', e => e.stopPropagation());
+    list.addEventListener('click', e => {
+        const opt = e.target.closest('.ss-opt');
+        if (!opt) return;
+        selVal = opt.dataset.value; selLabel = opt.textContent;
+        hiddenEl.value = selVal;
+        setFace(); close(); onChange();
+    });
+    document.addEventListener('click', close);
+
+    return {
+        reset()     { selVal = ''; selLabel = options[0]?.label || ''; hiddenEl.value = ''; setFace(); close(); },
+        setValue(v) { const o = options.find(x => x.value == v); if (o) { selVal = o.value; selLabel = o.label; hiddenEl.value = v; setFace(); } },
+    };
+}
+
 // ── Pagination helper ─────────────────────────
 // Renders pagination controls into containerId.
 // Calls onChange(newPage) when a page button is clicked.
