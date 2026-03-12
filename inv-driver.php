@@ -16,6 +16,7 @@ include 'includes/header.php';
             <div id="drFilterCompanyWrap" class="ss-wrap"></div>
             <input type="hidden" id="drFilterCompany">
             <input type="text" id="drSearchCustomer" placeholder="🔍 Search customer..." oninput="applyDrFilters()">
+            <input type="text" id="drSearchPhone" placeholder="🔍 Search phone..." oninput="applyDrFilters()">
             <button class="btn-clear" onclick="clearDrFilters()">✕ Clear</button>
             <span class="filter-count" id="drFilterCount"></span>
         </div>
@@ -134,6 +135,7 @@ let currentViewId  = null;
 let drFilterDriver   = '';
 let drFilterCompany  = '';
 let drSearchCustomer = '';
+let drSearchPhone    = '';
 let drSelectDriver, drSelectCompany;
 
 function emptyDrJob() {
@@ -153,6 +155,10 @@ function getFilteredDrInvoices() {
             const q = drSearchCustomer;
             if (!(inv.lineItems || []).some(j => (j.customerName || '').toLowerCase().includes(q))) return false;
         }
+        if (drSearchPhone) {
+            const q = drSearchPhone;
+            if (!(inv.lineItems || []).some(j => (j.phone || '').toLowerCase().includes(q))) return false;
+        }
         return true;
     });
 }
@@ -161,6 +167,7 @@ function applyDrFilters() {
     drFilterDriver   = parseInt(document.getElementById('drFilterDriver').value)   || '';
     drFilterCompany  = parseInt(document.getElementById('drFilterCompany').value)  || '';
     drSearchCustomer = document.getElementById('drSearchCustomer').value.toLowerCase().trim();
+    drSearchPhone    = document.getElementById('drSearchPhone').value.toLowerCase().trim();
     currentPage = 1;
     renderPage();
 }
@@ -169,7 +176,8 @@ function clearDrFilters() {
     drSelectDriver.reset();
     drSelectCompany.reset();
     document.getElementById('drSearchCustomer').value = '';
-    drFilterDriver = ''; drFilterCompany = ''; drSearchCustomer = '';
+    document.getElementById('drSearchPhone').value    = '';
+    drFilterDriver = ''; drFilterCompany = ''; drSearchCustomer = ''; drSearchPhone = '';
     currentPage = 1;
     renderPage();
 }
@@ -185,7 +193,7 @@ function renderPage() {
     const tb       = document.getElementById('drInvTbody');
     const filtered = getFilteredDrInvoices();
     const total    = filtered.length;
-    document.getElementById('drFilterCount').textContent = (drFilterDriver || drFilterCompany || drSearchCustomer)
+    document.getElementById('drFilterCount').textContent = (drFilterDriver || drFilterCompany || drSearchCustomer || drSearchPhone)
         ? `${total} result${total !== 1 ? 's' : ''}` : '';
     if (!total) {
         tb.innerHTML = `<tr><td colspan="7" class="empty">${driverInvoices.length ? 'No invoices match the current filters.' : 'No driver invoices yet. Click "+ Create Invoice" to start.'}</td></tr>`;

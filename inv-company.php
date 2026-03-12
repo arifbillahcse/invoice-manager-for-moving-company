@@ -16,6 +16,7 @@ include 'includes/header.php';
             <div id="coFilterDriverWrap" class="ss-wrap"></div>
             <input type="hidden" id="coFilterDriver">
             <input type="text" id="coSearchCustomer" placeholder="🔍 Search customer..." oninput="applyCoFilters()">
+            <input type="text" id="coSearchPhone" placeholder="🔍 Search phone..." oninput="applyCoFilters()">
             <button class="btn-clear" onclick="clearCoFilters()">✕ Clear</button>
             <span class="filter-count" id="coFilterCount"></span>
         </div>
@@ -133,6 +134,7 @@ let currentViewId  = null;
 let coFilterCompany  = '';
 let coFilterDriver   = '';
 let coSearchCustomer = '';
+let coSearchPhone    = '';
 let coSelectCompany, coSelectDriver;
 
 function emptyCoJob() {
@@ -152,6 +154,10 @@ function getFilteredCoInvoices() {
             const q = coSearchCustomer;
             if (!(inv.lineItems || []).some(j => (j.customerName || '').toLowerCase().includes(q))) return false;
         }
+        if (coSearchPhone) {
+            const q = coSearchPhone;
+            if (!(inv.lineItems || []).some(j => (j.phone || '').toLowerCase().includes(q))) return false;
+        }
         return true;
     });
 }
@@ -160,6 +166,7 @@ function applyCoFilters() {
     coFilterCompany  = parseInt(document.getElementById('coFilterCompany').value)  || '';
     coFilterDriver   = parseInt(document.getElementById('coFilterDriver').value)   || '';
     coSearchCustomer = document.getElementById('coSearchCustomer').value.toLowerCase().trim();
+    coSearchPhone    = document.getElementById('coSearchPhone').value.toLowerCase().trim();
     currentPage = 1;
     renderPage();
 }
@@ -168,7 +175,8 @@ function clearCoFilters() {
     coSelectCompany.reset();
     coSelectDriver.reset();
     document.getElementById('coSearchCustomer').value = '';
-    coFilterCompany = ''; coFilterDriver = ''; coSearchCustomer = '';
+    document.getElementById('coSearchPhone').value    = '';
+    coFilterCompany = ''; coFilterDriver = ''; coSearchCustomer = ''; coSearchPhone = '';
     currentPage = 1;
     renderPage();
 }
@@ -184,7 +192,7 @@ function renderPage() {
     const tb       = document.getElementById('coInvTbody');
     const filtered = getFilteredCoInvoices();
     const total    = filtered.length;
-    document.getElementById('coFilterCount').textContent = (coFilterCompany || coFilterDriver || coSearchCustomer)
+    document.getElementById('coFilterCount').textContent = (coFilterCompany || coFilterDriver || coSearchCustomer || coSearchPhone)
         ? `${total} result${total !== 1 ? 's' : ''}` : '';
     if (!total) {
         tb.innerHTML = `<tr><td colspan="7" class="empty">${companyInvoices.length ? 'No invoices match the current filters.' : 'No company invoices yet. Go to Invoice / Driver and click "🏢 Generate CI" on a driver invoice to auto-generate, or click "+ Create Invoice" to add manually.'}</td></tr>`;
