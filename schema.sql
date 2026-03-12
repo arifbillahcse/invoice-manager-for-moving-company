@@ -47,6 +47,9 @@ CREATE TABLE IF NOT EXISTS company_invoices (
     carrier_fee       DECIMAL(12,2)  DEFAULT 0,
     labor_cost        DECIMAL(12,2)  DEFAULT 0,
     pads              DECIMAL(12,2)  DEFAULT 0,
+    paid              DECIMAL(12,2)  DEFAULT 0,
+    paid_date         DATE           DEFAULT NULL,
+    invoice_remarks   TEXT           DEFAULT '',
     total             DECIMAL(12,2)  DEFAULT 0,
     created_at        TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (company_id)        REFERENCES companies(id)       ON DELETE CASCADE,
@@ -60,6 +63,7 @@ CREATE TABLE IF NOT EXISTS company_invoice_items (
     job_number    VARCHAR(100)   DEFAULT '',
     driver_id     INT            DEFAULT NULL,
     customer_name VARCHAR(255)   DEFAULT '',
+    phone         VARCHAR(30)    DEFAULT '',
     from_location VARCHAR(255)   DEFAULT '',
     to_location   VARCHAR(255)   DEFAULT '',
     cubic_feet    DECIMAL(10,2)  DEFAULT 0,
@@ -74,15 +78,18 @@ CREATE TABLE IF NOT EXISTS company_invoice_items (
 -- Driver Invoices
 -- ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS driver_invoices (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    driver_id   INT            NOT NULL,
-    date        DATE           NOT NULL,
-    subtotal    DECIMAL(12,2)  DEFAULT 0,
-    carrier_fee DECIMAL(12,2)  DEFAULT 0,
-    labor_cost  DECIMAL(12,2)  DEFAULT 0,
-    pads        DECIMAL(12,2)  DEFAULT 0,
-    total       DECIMAL(12,2)  DEFAULT 0,
-    created_at  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    driver_id       INT            NOT NULL,
+    date            DATE           NOT NULL,
+    subtotal        DECIMAL(12,2)  DEFAULT 0,
+    carrier_fee     DECIMAL(12,2)  DEFAULT 0,
+    labor_cost      DECIMAL(12,2)  DEFAULT 0,
+    pads            DECIMAL(12,2)  DEFAULT 0,
+    paid            DECIMAL(12,2)  DEFAULT 0,
+    paid_date       DATE           DEFAULT NULL,
+    invoice_remarks TEXT           DEFAULT '',
+    total           DECIMAL(12,2)  DEFAULT 0,
+    created_at      TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE
 );
 
@@ -93,6 +100,7 @@ CREATE TABLE IF NOT EXISTS driver_invoice_items (
     job_number    VARCHAR(100)   DEFAULT '',
     company_id    INT            DEFAULT NULL,
     customer_name VARCHAR(255)   DEFAULT '',
+    phone         VARCHAR(30)    DEFAULT '',
     from_location VARCHAR(255)   DEFAULT '',
     to_location   VARCHAR(255)   DEFAULT '',
     cubic_feet    DECIMAL(10,2)  DEFAULT 0,
@@ -147,3 +155,17 @@ ALTER TABLE driver_invoices
 ALTER TABLE company_invoices
     ADD COLUMN IF NOT EXISTS paid      DECIMAL(12,2) DEFAULT 0,
     ADD COLUMN IF NOT EXISTS paid_date DATE          DEFAULT NULL;
+
+-- Migration: Add invoice_remarks to both invoice tables
+ALTER TABLE driver_invoices
+    ADD COLUMN IF NOT EXISTS invoice_remarks TEXT DEFAULT '';
+
+ALTER TABLE company_invoices
+    ADD COLUMN IF NOT EXISTS invoice_remarks TEXT DEFAULT '';
+
+-- Migration: Add phone to invoice item tables
+ALTER TABLE driver_invoice_items
+    ADD COLUMN IF NOT EXISTS phone VARCHAR(30) DEFAULT '' AFTER customer_name;
+
+ALTER TABLE company_invoice_items
+    ADD COLUMN IF NOT EXISTS phone VARCHAR(30) DEFAULT '' AFTER customer_name;
