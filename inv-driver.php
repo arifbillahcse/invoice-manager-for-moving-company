@@ -10,6 +10,17 @@ include 'includes/header.php';
         <div class="btn-row">
             <button class="btn btn-success" onclick="openDrInvModal()">+ Create Invoice</button>
         </div>
+        <div class="filter-bar">
+            <select id="drFilterDriver" onchange="applyDrFilters()">
+                <option value="">All Drivers</option>
+            </select>
+            <select id="drFilterCompany" onchange="applyDrFilters()">
+                <option value="">All Companies</option>
+            </select>
+            <input type="text" id="drSearchCustomer" placeholder="🔍 Search customer..." oninput="applyDrFilters()">
+            <button class="btn-clear" onclick="clearDrFilters()">✕ Clear</button>
+            <span class="filter-count" id="drFilterCount"></span>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Invoice #</th><th>Driver</th><th>Jobs</th><th>Subtotal</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
@@ -121,6 +132,10 @@ let drJobRows      = [];
 let editingDrInvId = null;
 let currentViewId  = null;
 
+let drFilterDriver   = '';
+let drFilterCompany  = '';
+let drSearchCustomer = '';
+
 function emptyDrJob() {
     return { jobNumber:'', companyId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
 }
@@ -130,16 +145,56 @@ function emptyDrJob() {
 const PAGE_SIZE = 30;
 let currentPage = 1;
 
+function getFilteredDrInvoices() {
+    return driverInvoices.filter(inv => {
+        if (drFilterDriver  && inv.driverId !== drFilterDriver)  return false;
+        if (drFilterCompany && !(inv.lineItems || []).some(j => j.companyId == drFilterCompany)) return false;
+        if (drSearchCustomer) {
+            const q = drSearchCustomer;
+            if (!(inv.lineItems || []).some(j => (j.customerName || '').toLowerCase().includes(q))) return false;
+        }
+        return true;
+    });
+}
+
+function applyDrFilters() {
+    drFilterDriver   = parseInt(document.getElementById('drFilterDriver').value)   || '';
+    drFilterCompany  = parseInt(document.getElementById('drFilterCompany').value)  || '';
+    drSearchCustomer = document.getElementById('drSearchCustomer').value.toLowerCase().trim();
+    currentPage = 1;
+    renderPage();
+}
+
+function clearDrFilters() {
+    document.getElementById('drFilterDriver').value   = '';
+    document.getElementById('drFilterCompany').value  = '';
+    document.getElementById('drSearchCustomer').value = '';
+    drFilterDriver = ''; drFilterCompany = ''; drSearchCustomer = '';
+    currentPage = 1;
+    renderPage();
+}
+
+function populateDrFilterDropdowns() {
+    const driverSel  = document.getElementById('drFilterDriver');
+    const companySel = document.getElementById('drFilterCompany');
+    driverSel.innerHTML  = '<option value="">All Drivers</option>'  + drivers.map(d  => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
+    companySel.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+}
+
 function renderPage() {
-    const tb = document.getElementById('drInvTbody');
-    if (!driverInvoices.length) {
-        tb.innerHTML = '<tr><td colspan="7" class="empty">No driver invoices yet. Click "+ Create Invoice" to start.</td></tr>';
+    const tb       = document.getElementById('drInvTbody');
+    const filtered = getFilteredDrInvoices();
+    const total    = filtered.length;
+    document.getElementById('drFilterCount').textContent = (drFilterDriver || drFilterCompany || drSearchCustomer)
+        ? `${total} result${total !== 1 ? 's' : ''}` : '';
+    if (!total) {
+        tb.innerHTML = `<tr><td colspan="7" class="empty">${driverInvoices.length ? 'No invoices match the current filters.' : 'No driver invoices yet. Click "+ Create Invoice" to start.'}</td></tr>`;
         renderPagination('drInvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(driverInvoices.length / PAGE_SIZE)));
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(total / PAGE_SIZE)));
     const start    = (currentPage - 1) * PAGE_SIZE;
-    const pageData = driverInvoices.slice(start, start + PAGE_SIZE);
+    const pageData = filtered.slice(start, start + PAGE_SIZE);
     tb.innerHTML = pageData.map(inv => {
         const dr = drivers.find(d => d.id === inv.driverId);
         const n  = (inv.lineItems || []).length;
@@ -160,7 +215,7 @@ function renderPage() {
                 </div></td>
             </tr>`;
     }).join('');
-    renderPagination('drInvPagination', driverInvoices.length, currentPage, PAGE_SIZE, p => {
+    renderPagination('drInvPagination', total, currentPage, PAGE_SIZE, p => {
         currentPage = p;
         renderPage();
     });
@@ -612,6 +667,7 @@ async function generateCoInvoices(drInvId) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFromDB();
+    populateDrFilterDropdowns();
     renderPage();
 });
 </script>

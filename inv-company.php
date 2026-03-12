@@ -10,6 +10,17 @@ include 'includes/header.php';
         <div class="btn-row">
             <button class="btn btn-success" onclick="openCoInvModal()">+ Create Invoice</button>
         </div>
+        <div class="filter-bar">
+            <select id="coFilterCompany" onchange="applyCoFilters()">
+                <option value="">All Companies</option>
+            </select>
+            <select id="coFilterDriver" onchange="applyCoFilters()">
+                <option value="">All Drivers</option>
+            </select>
+            <input type="text" id="coSearchCustomer" placeholder="🔍 Search customer..." oninput="applyCoFilters()">
+            <button class="btn-clear" onclick="clearCoFilters()">✕ Clear</button>
+            <span class="filter-count" id="coFilterCount"></span>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead><tr><th>Invoice #</th><th>Company</th><th>Jobs</th><th>Subtotal</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead>
@@ -120,6 +131,10 @@ let coJobRows      = [];
 let editingCoInvId = null;
 let currentViewId  = null;
 
+let coFilterCompany  = '';
+let coFilterDriver   = '';
+let coSearchCustomer = '';
+
 function emptyCoJob() {
     return { jobNumber:'', driverId:'', customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' };
 }
@@ -129,16 +144,56 @@ function emptyCoJob() {
 const PAGE_SIZE = 30;
 let currentPage = 1;
 
+function getFilteredCoInvoices() {
+    return companyInvoices.filter(inv => {
+        if (coFilterCompany && inv.companyId !== coFilterCompany) return false;
+        if (coFilterDriver  && !(inv.lineItems || []).some(j => j.driverId == coFilterDriver)) return false;
+        if (coSearchCustomer) {
+            const q = coSearchCustomer;
+            if (!(inv.lineItems || []).some(j => (j.customerName || '').toLowerCase().includes(q))) return false;
+        }
+        return true;
+    });
+}
+
+function applyCoFilters() {
+    coFilterCompany  = parseInt(document.getElementById('coFilterCompany').value)  || '';
+    coFilterDriver   = parseInt(document.getElementById('coFilterDriver').value)   || '';
+    coSearchCustomer = document.getElementById('coSearchCustomer').value.toLowerCase().trim();
+    currentPage = 1;
+    renderPage();
+}
+
+function clearCoFilters() {
+    document.getElementById('coFilterCompany').value  = '';
+    document.getElementById('coFilterDriver').value   = '';
+    document.getElementById('coSearchCustomer').value = '';
+    coFilterCompany = ''; coFilterDriver = ''; coSearchCustomer = '';
+    currentPage = 1;
+    renderPage();
+}
+
+function populateCoFilterDropdowns() {
+    const companySel = document.getElementById('coFilterCompany');
+    const driverSel  = document.getElementById('coFilterDriver');
+    companySel.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    driverSel.innerHTML  = '<option value="">All Drivers</option>'  + drivers.map(d  => `<option value="${d.id}">${d.firstName} ${d.lastName}</option>`).join('');
+}
+
 function renderPage() {
-    const tb = document.getElementById('coInvTbody');
-    if (!companyInvoices.length) {
-        tb.innerHTML = '<tr><td colspan="7" class="empty">No company invoices yet. Go to Invoice / Driver and click "🏢 Generate CI" on a driver invoice to auto-generate, or click "+ Create Invoice" to add manually.</td></tr>';
+    const tb       = document.getElementById('coInvTbody');
+    const filtered = getFilteredCoInvoices();
+    const total    = filtered.length;
+    document.getElementById('coFilterCount').textContent = (coFilterCompany || coFilterDriver || coSearchCustomer)
+        ? `${total} result${total !== 1 ? 's' : ''}` : '';
+    if (!total) {
+        tb.innerHTML = `<tr><td colspan="7" class="empty">${companyInvoices.length ? 'No invoices match the current filters.' : 'No company invoices yet. Go to Invoice / Driver and click "🏢 Generate CI" on a driver invoice to auto-generate, or click "+ Create Invoice" to add manually.'}</td></tr>`;
         renderPagination('coInvPagination', 0, 1, PAGE_SIZE, () => {});
         return;
     }
-    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(companyInvoices.length / PAGE_SIZE)));
+    currentPage = Math.min(currentPage, Math.max(1, Math.ceil(total / PAGE_SIZE)));
     const start    = (currentPage - 1) * PAGE_SIZE;
-    const pageData = companyInvoices.slice(start, start + PAGE_SIZE);
+    const pageData = filtered.slice(start, start + PAGE_SIZE);
     tb.innerHTML = pageData.map(inv => {
         const co = companies.find(c => c.id === inv.companyId);
         const n  = (inv.lineItems || []).length;
@@ -158,7 +213,7 @@ function renderPage() {
                 </div></td>
             </tr>`;
     }).join('');
-    renderPagination('coInvPagination', companyInvoices.length, currentPage, PAGE_SIZE, p => {
+    renderPagination('coInvPagination', total, currentPage, PAGE_SIZE, p => {
         currentPage = p;
         renderPage();
     });
@@ -530,6 +585,7 @@ async function downloadCoInvoicePDF(id) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadFromDB();
+    populateCoFilterDropdowns();
     renderPage();
 });
 </script>

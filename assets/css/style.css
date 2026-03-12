@@ -174,6 +174,14 @@ tr:hover { background: var(--bg3); }
 }
 .btn-remove:hover { background: var(--red-dark); }
 
+/* ── Filter bar ── */
+.filter-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.filter-bar select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text); min-width: 160px; }
+.filter-bar input[type="text"] { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--card); color: var(--text); min-width: 200px; }
+.filter-bar .btn-clear { padding: 7px 14px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text-muted); cursor: pointer; }
+.filter-bar .btn-clear:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.filter-count { font-size: 12px; color: var(--text-muted); }
+
 /* ── Summary ── */
 .summary-area { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
 .summary-area .summary-box { flex: 0 0 auto; min-width: 320px; margin-bottom: 0; }
