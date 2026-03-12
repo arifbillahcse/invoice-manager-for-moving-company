@@ -66,22 +66,28 @@ include 'includes/header.php';
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addDrJobRow()">+ Add Job</button>
             </div>
 
-            <div class="summary-box">
-                <div class="summary-row"><span>Subtotal (Bal. Due total):</span><span id="drSubtotal">$0.00</span></div>
-                <div class="summary-row"><span>Carrier Fee (Total table value):</span><span id="drCarrierFee">$0.00</span></div>
-                <div class="summary-row">
-                    <span>Labor Cost:</span>
-                    <input type="number" id="drLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+            <div class="summary-area">
+                <div class="invoice-remarks-box">
+                    <label>Remarks</label>
+                    <textarea id="drInvoiceRemarks" placeholder="Invoice remarks..."></textarea>
                 </div>
-                <div class="summary-row">
-                    <span>Pads:</span>
-                    <input type="number" id="drPads" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                <div class="summary-box">
+                    <div class="summary-row"><span>Subtotal (Bal. Due total):</span><span id="drSubtotal">$0.00</span></div>
+                    <div class="summary-row"><span>Carrier Fee (Total table value):</span><span id="drCarrierFee">$0.00</span></div>
+                    <div class="summary-row">
+                        <span>Labor Cost:</span>
+                        <input type="number" id="drLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                    </div>
+                    <div class="summary-row">
+                        <span>Pads:</span>
+                        <input type="number" id="drPads" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                    </div>
+                    <div class="summary-row">
+                        <span>Paid:</span>
+                        <input type="number" id="drPaid" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
+                    </div>
+                    <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
                 </div>
-                <div class="summary-row">
-                    <span>Paid:</span>
-                    <input type="number" id="drPaid" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateDrSummary()">
-                </div>
-                <div class="summary-row total"><span>TOTAL DUE:</span><span id="drTotal">$0.00</span></div>
             </div>
 
             <div class="modal-footer">
@@ -183,10 +189,11 @@ function editDrInvoice(id) {
     document.getElementById('drInvModalTitle').textContent = 'Edit Driver Invoice';
     document.getElementById('drInvSubmitBtn').textContent  = '✔ Update Invoice';
     document.getElementById('drInvDate').value = inv.date;
-    document.getElementById('drLaborCost').value = inv.laborCost || '';
-    document.getElementById('drPads').value      = inv.pads || '';
-    document.getElementById('drPaid').value      = inv.paid || '';
-    document.getElementById('drPaidDate').value  = inv.paidDate || '';
+    document.getElementById('drLaborCost').value      = inv.laborCost || '';
+    document.getElementById('drPads').value           = inv.pads || '';
+    document.getElementById('drPaid').value           = inv.paid || '';
+    document.getElementById('drPaidDate').value       = inv.paidDate || '';
+    document.getElementById('drInvoiceRemarks').value = inv.invoiceRemarks || '';
     populateDrDriverSelect(inv.driverId);
     drJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyDrJob()]));
     renderDrJobRows();
@@ -262,9 +269,10 @@ async function saveDrInvoice(e) {
     const pads    = parseFloat(document.getElementById('drPads').value) || 0;
     const paid     = parseFloat(document.getElementById('drPaid').value) || 0;
     const date     = document.getElementById('drInvDate').value;
-    const paidDate = document.getElementById('drPaidDate').value || '';
-    const items    = JSON.parse(JSON.stringify(drJobRows));
-    const payload  = { driverId: did, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
+    const paidDate       = document.getElementById('drPaidDate').value || '';
+    const invoiceRemarks = document.getElementById('drInvoiceRemarks').value;
+    const items          = JSON.parse(JSON.stringify(drJobRows));
+    const payload        = { driverId: did, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
 
     try {
         let drInvId;
@@ -481,7 +489,10 @@ function buildDrInvoiceHtml(id) {
 
             <!-- ── Footer: Remarks left, Signature right ── -->
             <div class="inv-footer-row">
-                <div class="inv-footer-cell"><strong>Remarks</strong></div>
+                <div class="inv-footer-cell">
+                    <strong>Remarks</strong>
+                    ${inv.invoiceRemarks ? `<div style="margin-top:6px;font-size:12px;font-weight:400;white-space:pre-wrap;">${inv.invoiceRemarks}</div>` : ''}
+                </div>
                 <div class="inv-footer-cell" style="text-align:right;"><strong>Signature</strong></div>
             </div>
         </div>`;

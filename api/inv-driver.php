@@ -9,8 +9,9 @@ $db     = getDB();
 try {
     $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS paid       DECIMAL(12,2) DEFAULT 0");
     $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS paid_date  DATE          DEFAULT NULL");
-    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS labor_cost DECIMAL(12,2) DEFAULT 0");
-    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS pads       DECIMAL(12,2) DEFAULT 0");
+    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS labor_cost      DECIMAL(12,2) DEFAULT 0");
+    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS pads            DECIMAL(12,2) DEFAULT 0");
+    $db->exec("ALTER TABLE driver_invoices ADD COLUMN IF NOT EXISTS invoice_remarks TEXT          DEFAULT ''");
 } catch (PDOException $e) { /* already exists */ }
 
 // ── GET: list all driver invoices ─────────────
@@ -26,9 +27,10 @@ if ($method === 'GET') {
         $inv['carrierFee'] = (float)$inv['carrier_fee'];
         $inv['laborCost']  = (float)($inv['labor_cost'] ?? 0);
         $inv['pads']       = (float)($inv['pads'] ?? 0);
-        $inv['paid']       = (float)($inv['paid'] ?? 0);
-        $inv['paidDate']   = $inv['paid_date'] ?? '';
-        $inv['total']      = (float)$inv['total'];
+        $inv['paid']           = (float)($inv['paid'] ?? 0);
+        $inv['paidDate']       = $inv['paid_date'] ?? '';
+        $inv['invoiceRemarks'] = $inv['invoice_remarks'] ?? '';
+        $inv['total']          = (float)$inv['total'];
 
         $items = $db->prepare(
             "SELECT * FROM driver_invoice_items WHERE invoice_id=? ORDER BY sort_order, id"
@@ -36,7 +38,7 @@ if ($method === 'GET') {
         $items->execute([$inv['id']]);
         $inv['lineItems'] = array_map('mapDrItem', $items->fetchAll());
 
-        unset($inv['driver_id'], $inv['carrier_fee'], $inv['labor_cost'], $inv['paid_date'], $inv['created_at']);
+        unset($inv['driver_id'], $inv['carrier_fee'], $inv['labor_cost'], $inv['paid_date'], $inv['invoice_remarks'], $inv['created_at']);
     }
     unset($inv);
 
@@ -49,8 +51,8 @@ if ($method === 'POST') {
     $db->beginTransaction();
 
     $stmt = $db->prepare(
-        "INSERT INTO driver_invoices (driver_id, date, subtotal, carrier_fee, labor_cost, pads, paid, paid_date, total)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO driver_invoices (driver_id, date, subtotal, carrier_fee, labor_cost, pads, paid, paid_date, invoice_remarks, total)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([
         (int)$d['driverId'],
@@ -61,6 +63,7 @@ if ($method === 'POST') {
         (float)($d['pads']       ?? 0),
         (float)($d['paid']       ?? 0),
         ($d['paidDate'] ?? '') ?: null,
+        $d['invoiceRemarks']     ?? '',
         (float)($d['total']      ?? 0),
     ]);
     $id = (int)$db->lastInsertId();
@@ -78,7 +81,7 @@ if ($method === 'PUT') {
     $db->beginTransaction();
 
     $db->prepare(
-        "UPDATE driver_invoices SET driver_id=?, date=?, subtotal=?, carrier_fee=?, labor_cost=?, pads=?, paid=?, paid_date=?, total=? WHERE id=?"
+        "UPDATE driver_invoices SET driver_id=?, date=?, subtotal=?, carrier_fee=?, labor_cost=?, pads=?, paid=?, paid_date=?, invoice_remarks=?, total=? WHERE id=?"
     )->execute([
         (int)$d['driverId'],
         $d['date'],
@@ -88,6 +91,7 @@ if ($method === 'PUT') {
         (float)($d['pads']       ?? 0),
         (float)($d['paid']       ?? 0),
         ($d['paidDate'] ?? '') ?: null,
+        $d['invoiceRemarks']     ?? '',
         (float)($d['total']      ?? 0),
         $id,
     ]);

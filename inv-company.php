@@ -66,22 +66,28 @@ include 'includes/header.php';
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" onclick="addCoJobRow()">+ Add Job</button>
             </div>
 
-            <div class="summary-box">
-                <div class="summary-row"><span>Subtotal (Bal. Due total):</span><span id="coSubtotal">$0.00</span></div>
-                <div class="summary-row"><span>Carrier Fee (Total table value):</span><span id="coCarrierFee">$0.00</span></div>
-                <div class="summary-row">
-                    <span>Labor Cost:</span>
-                    <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+            <div class="summary-area">
+                <div class="invoice-remarks-box">
+                    <label>Remarks</label>
+                    <textarea id="coInvoiceRemarks" placeholder="Invoice remarks..."></textarea>
                 </div>
-                <div class="summary-row">
-                    <span>Pads:</span>
-                    <input type="number" id="coPads" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                <div class="summary-box">
+                    <div class="summary-row"><span>Subtotal (Bal. Due total):</span><span id="coSubtotal">$0.00</span></div>
+                    <div class="summary-row"><span>Carrier Fee (Total table value):</span><span id="coCarrierFee">$0.00</span></div>
+                    <div class="summary-row">
+                        <span>Labor Cost:</span>
+                        <input type="number" id="coLaborCost" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                    </div>
+                    <div class="summary-row">
+                        <span>Pads:</span>
+                        <input type="number" id="coPads" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                    </div>
+                    <div class="summary-row">
+                        <span>Paid:</span>
+                        <input type="number" id="coPaid" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
+                    </div>
+                    <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
                 </div>
-                <div class="summary-row">
-                    <span>Paid:</span>
-                    <input type="number" id="coPaid" placeholder="0.00" step="0.01" style="width:110px;text-align:right;" oninput="updateCoSummary()">
-                </div>
-                <div class="summary-row total"><span>TOTAL DUE:</span><span id="coTotal">$0.00</span></div>
             </div>
 
             <div class="modal-footer">
@@ -181,10 +187,11 @@ function editCoInvoice(id) {
     document.getElementById('coInvModalTitle').textContent = 'Edit Company Invoice';
     document.getElementById('coInvSubmitBtn').textContent  = '✔ Update Invoice';
     document.getElementById('coInvDate').value    = inv.date;
-    document.getElementById('coLaborCost').value  = inv.laborCost || '';
-    document.getElementById('coPads').value       = inv.pads || '';
-    document.getElementById('coPaid').value       = inv.paid || '';
-    document.getElementById('coPaidDate').value   = inv.paidDate || '';
+    document.getElementById('coLaborCost').value      = inv.laborCost || '';
+    document.getElementById('coPads').value           = inv.pads || '';
+    document.getElementById('coPaid').value           = inv.paid || '';
+    document.getElementById('coPaidDate').value       = inv.paidDate || '';
+    document.getElementById('coInvoiceRemarks').value = inv.invoiceRemarks || '';
     populateCoCompanySelect(inv.companyId);
     coJobRows = JSON.parse(JSON.stringify(inv.lineItems || [emptyCoJob()]));
     renderCoJobRows();
@@ -260,9 +267,10 @@ async function saveCoInvoice(e) {
     const pads    = parseFloat(document.getElementById('coPads').value) || 0;
     const paid     = parseFloat(document.getElementById('coPaid').value) || 0;
     const date     = document.getElementById('coInvDate').value;
-    const paidDate = document.getElementById('coPaidDate').value || '';
-    const items    = JSON.parse(JSON.stringify(coJobRows));
-    const payload  = { companyId: cid, date, paidDate, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
+    const paidDate      = document.getElementById('coPaidDate').value || '';
+    const invoiceRemarks = document.getElementById('coInvoiceRemarks').value;
+    const items          = JSON.parse(JSON.stringify(coJobRows));
+    const payload        = { companyId: cid, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee + labor + pads + paid };
 
     try {
         if (editingCoInvId) {
@@ -420,7 +428,10 @@ function buildCoInvoiceHtml(id) {
 
             <!-- ── Footer: Remarks left, Signature right ── -->
             <div class="inv-footer-row">
-                <div class="inv-footer-cell"><strong>Remarks</strong></div>
+                <div class="inv-footer-cell">
+                    <strong>Remarks</strong>
+                    ${inv.invoiceRemarks ? `<div style="margin-top:6px;font-size:12px;font-weight:400;white-space:pre-wrap;">${inv.invoiceRemarks}</div>` : ''}
+                </div>
                 <div class="inv-footer-cell" style="text-align:right;"><strong>Signature</strong></div>
             </div>
         </div>`;
