@@ -187,13 +187,13 @@ tr:hover { background: var(--bg3); }
 .ss-wrap { position: relative; min-width: 160px; font-size: 13px; user-select: none; }
 .ss-face { padding: 7px 28px 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ss-face::after { content: ''; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid var(--text3); pointer-events: none; }
-.ss-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 9999; overflow: hidden; }
+.ss-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 0; min-width: 100%; background: #000; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 8px 24px rgba(0,0,0,.6); z-index: 9999; overflow: hidden; }
 .ss-wrap.ss-open .ss-dropdown { display: block; }
-.ss-search { width: 100%; padding: 8px 10px; border: none; border-bottom: 1px solid var(--border); background: var(--bg3); color: var(--text); font-size: 13px; outline: none; box-sizing: border-box; }
-.ss-list { max-height: 220px; overflow-y: auto; }
-.ss-opt { padding: 8px 12px; cursor: pointer; color: var(--text); white-space: nowrap; }
+.ss-search { width: 100%; padding: 8px 10px; border: none; border-bottom: 1px solid var(--border); background: #111; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; }
+.ss-list { max-height: 220px; overflow-y: auto; background: #000; }
+.ss-opt { padding: 8px 12px; cursor: pointer; color: #e2e8f0; white-space: nowrap; background: #000; }
 .ss-opt:hover, .ss-opt.ss-sel { background: var(--blue); color: #fff; }
-.ss-empty { padding: 10px 12px; color: var(--text3); font-style: italic; }
+.ss-empty { padding: 10px 12px; color: #94a3b8; font-style: italic; background: #000; }
 
 /* ── Summary ── */
 .summary-area { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
