@@ -543,7 +543,7 @@ function buildDrInvoiceHtml(id) {
                     <span>$${pads.toFixed(2)}</span>
                 </div>
                 ${paid !== 0 ? `<div class="inv-summary-row ${paid < 0 ? 'inv-paid-row' : 'inv-charge-row'}">
-                    <span>${paid < 0 ? 'Paid' : 'Charge'}</span>
+                    <span>Paid</span>
                     <span>${paid < 0 ? '− $' + Math.abs(paid).toFixed(2) : '+ $' + paid.toFixed(2)}</span>
                 </div>` : ''}
                 <div class="inv-summary-row">
