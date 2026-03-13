@@ -401,7 +401,10 @@ async function autoSyncCoInvoices(drInvId, inv) {
             lineItems,
             subtotal:        sub,
             carrierFee:      fee,
-            total:           sub - fee,
+            laborCost:       inv.laborCost       || 0,
+            pads:            inv.pads            || 0,
+            invoiceRemarks:  inv.invoiceRemarks  || '',
+            total:           sub - fee + (inv.laborCost || 0) + (inv.pads || 0),
         };
         try {
             const res = await api('inv-company', 'POST', payload);
