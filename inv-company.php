@@ -6,7 +6,23 @@ include 'includes/header.php';
 ?>
 
     <div class="content">
-        <h2 style="margin-bottom:20px;">Invoice for Company</h2>
+        <h2 style="margin-bottom:12px;">Invoice for Company</h2>
+
+        <!-- Collapsible totals breakdown -->
+        <div id="coTotalsPanel" style="margin-bottom:16px;">
+            <button onclick="toggleCoTotals()" id="coTotalsToggleBtn"
+                style="background:none;border:1px solid #475569;color:#94a3b8;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:13px;margin-bottom:0;">
+                ▶ Show Totals
+            </button>
+            <div id="coTotalsBody" style="display:none;margin-top:8px;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:12px 16px;max-width:420px;">
+                <div id="coTotalsList" style="font-size:13px;color:#cbd5e1;margin-bottom:8px;max-height:260px;overflow-y:auto;"></div>
+                <div style="border-top:1px solid #475569;padding-top:8px;display:flex;justify-content:space-between;font-size:14px;font-weight:700;color:#f1f5f9;">
+                    <span>Grand Total</span>
+                    <span id="coGrandTotal">$0.00</span>
+                </div>
+            </div>
+        </div>
+
         <div class="btn-row">
             <button class="btn btn-success" onclick="openCoInvModal()">+ Create Invoice</button>
         </div>
@@ -188,9 +204,37 @@ function populateCoFilterDropdowns() {
     coSelectDriver  = makeSearchableSelect(document.getElementById('coFilterDriverWrap'),  document.getElementById('coFilterDriver'),  driverOpts,  applyCoFilters);
 }
 
+let coTotalsOpen = false;
+function toggleCoTotals() {
+    coTotalsOpen = !coTotalsOpen;
+    document.getElementById('coTotalsBody').style.display = coTotalsOpen ? 'block' : 'none';
+    document.getElementById('coTotalsToggleBtn').textContent = coTotalsOpen ? '▼ Hide Totals' : '▶ Show Totals';
+}
+
+function updateCoTotalsPanel(filtered) {
+    const list  = document.getElementById('coTotalsList');
+    const grand = document.getElementById('coGrandTotal');
+    let sum = 0;
+    list.innerHTML = filtered.map(inv => {
+        const co   = companies.find(c => c.id === inv.companyId);
+        const name = co ? co.name : '?';
+        const t    = inv.total || 0;
+        sum += t;
+        const color = t < 0 ? '#f87171' : '#86efac';
+        return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e293b;">
+            <span><strong style="color:#f1f5f9;">CI-${inv.id}</strong>&nbsp;&nbsp;${name}</span>
+            <span style="color:${color};font-weight:600;">$${t.toFixed(2)}</span>
+        </div>`;
+    }).join('');
+    const gc = sum < 0 ? '#f87171' : '#86efac';
+    grand.style.color = gc;
+    grand.textContent = '$' + sum.toFixed(2);
+}
+
 function renderPage() {
     const tb       = document.getElementById('coInvTbody');
     const filtered = getFilteredCoInvoices();
+    updateCoTotalsPanel(filtered);
     const total    = filtered.length;
     document.getElementById('coFilterCount').textContent = (coFilterCompany || coFilterDriver || coSearchCustomer || coSearchPhone)
         ? `${total} result${total !== 1 ? 's' : ''}` : '';
