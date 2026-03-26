@@ -338,11 +338,11 @@ function renderDrJobRows() {
             <input  type="tel"    placeholder="Phone"    value="${esc(r.phone)}"        onchange="setDrJob(${i},'phone',this.value)">
             <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setDrJob(${i},'from',this.value)">
             <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setDrJob(${i},'to',this.value)">
-            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setDrJob(${i},'cubicFeet',this.value)" min="0">
-            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setDrJob(${i},'rate',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setDrJob(${i},'cubicFeet',this.value)" step="0.01">
+            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setDrJob(${i},'rate',this.value)" step="0.01">
             <div class="cell-total">$${total}</div>
-            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setDrJob(${i},'balanceDue',this.value)" step="0.01" min="0">
-            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setDrJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setDrJob(${i},'balanceDue',this.value)" step="0.01">
+            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setDrJob(${i},'newBalance',this.value)" step="0.01">
             <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setDrJob(${i},'remarks',this.value)">
             ${drJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeDrJobRow(${i})">&#x2715;</button>`

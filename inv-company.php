@@ -336,11 +336,11 @@ function renderCoJobRows() {
             <input  type="tel"    placeholder="Phone"    value="${esc(r.phone)}"        onchange="setCoJob(${i},'phone',this.value)">
             <input  type="text"   placeholder="From"     value="${esc(r.from)}"         onchange="setCoJob(${i},'from',this.value)">
             <input  type="text"   placeholder="To"       value="${esc(r.to)}"           onchange="setCoJob(${i},'to',this.value)">
-            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setCoJob(${i},'cubicFeet',this.value)" min="0">
-            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setCoJob(${i},'rate',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="CF"       value="${r.cubicFeet || ''}"   onchange="setCoJob(${i},'cubicFeet',this.value)" step="0.01">
+            <input  type="number" placeholder="Rate"     value="${r.rate || ''}"        onchange="setCoJob(${i},'rate',this.value)" step="0.01">
             <div class="cell-total">$${total}</div>
-            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setCoJob(${i},'balanceDue',this.value)" step="0.01" min="0">
-            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setCoJob(${i},'newBalance',this.value)" step="0.01" min="0">
+            <input  type="number" placeholder="Bal Due"  value="${r.balanceDue || ''}"  onchange="setCoJob(${i},'balanceDue',this.value)" step="0.01">
+            <input  type="number" placeholder="Orig Bal" value="${r.newBalance || ''}"  onchange="setCoJob(${i},'newBalance',this.value)" step="0.01">
             <input  type="text"   placeholder="Remarks"  value="${esc(r.remarks)}"      onchange="setCoJob(${i},'remarks',this.value)">
             ${coJobRows.length > 1
                 ? `<button type="button" class="btn-remove" onclick="removeCoJobRow(${i})">&#x2715;</button>`
