@@ -7,6 +7,16 @@ if (empty($_SESSION['admin_id'])) {
 }
 require_once '../config/db.php';
 
+// Format date from YYYY-MM-DD to MM-DD-YYYY
+function formatDate($dateStr) {
+    if (!$dateStr) return '';
+    $parts = explode('-', $dateStr);
+    if (count($parts) === 3) {
+        return "{$parts[1]}-{$parts[2]}-{$parts[0]}";
+    }
+    return $dateStr;
+}
+
 $db = getDB();
 
 // ── Build each CSV in memory ──────────────────
@@ -56,7 +66,7 @@ foreach ($invoices as $inv) {
     if (empty($rows)) {
         // Invoice with no line items — still output one row
         $csv .= csvLine([
-            'CI-'.$inv['id'], $inv['company_name'], $inv['date'],
+            'CI-'.$inv['id'], $inv['company_name'], formatDate($inv['date']),
             '','','','','','','','','','','',
             number_format($inv['subtotal'],2),
             number_format($inv['carrier_fee'],2),
@@ -68,7 +78,7 @@ foreach ($invoices as $inv) {
             $csv .= csvLine([
                 'CI-'.$inv['id'],
                 $i === 0 ? $inv['company_name'] : '',   // only first row shows invoice-level fields
-                $i === 0 ? $inv['date'] : '',
+                $i === 0 ? formatDate($inv['date']) : '',
                 $r['job_number'],
                 $r['driver_name'] ?? '',
                 $r['customer_name'],
@@ -115,7 +125,7 @@ foreach ($invoices as $inv) {
 
     if (empty($rows)) {
         $csv .= csvLine([
-            'DI-'.$inv['id'], $inv['driver_name'], $inv['date'],
+            'DI-'.$inv['id'], $inv['driver_name'], formatDate($inv['date']),
             '','','','','','','','','','','',
             number_format($inv['subtotal'],2),
             number_format($inv['carrier_fee'],2),
@@ -127,7 +137,7 @@ foreach ($invoices as $inv) {
             $csv .= csvLine([
                 'DI-'.$inv['id'],
                 $i === 0 ? $inv['driver_name'] : '',
-                $i === 0 ? $inv['date'] : '',
+                $i === 0 ? formatDate($inv['date']) : '',
                 $r['job_number'],
                 $r['company_name'] ?? '',
                 $r['customer_name'],

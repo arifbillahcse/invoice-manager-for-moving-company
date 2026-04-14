@@ -257,7 +257,7 @@ function renderPage() {
                 <td>${n} job${n !== 1 ? 's' : ''}</td>
                 <td>$${(inv.subtotal || 0).toFixed(2)}</td>
                 <td><strong>$${(inv.total || 0).toFixed(2)}</strong></td>
-                <td>${inv.date}</td>
+                <td>${formatDate(inv.date)}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-pdf"    onclick="downloadDrInvoicePDF(${inv.id})">📥 PDF</button>
@@ -530,7 +530,7 @@ function buildDrInvoiceHtml(id) {
                     <h2>${dr.firstName || ''} ${dr.lastName || ''}</h2>
                     <p>Driver Statement</p>
                     <p>Phone: ${dr.phone || '—'} &nbsp;&nbsp; License: ${dr.license || '—'}</p>
-                    ${inv.paidDate ? `<p class="inv-paid-date"><strong>Paid Date: ${inv.paidDate}</strong></p>` : ''}
+                    ${inv.paidDate ? `<p class="inv-paid-date"><strong>Paid Date: ${formatDate(inv.paidDate)}</strong></p>` : ''}
                 </div>
             </div>
 
@@ -538,7 +538,7 @@ function buildDrInvoiceHtml(id) {
             <div class="inv-meta">
                 <div>
                     <strong>Invoice #:</strong> DI-${inv.id}<br>
-                    <strong>Date:</strong> ${inv.date}<br>
+                    <strong>Date:</strong> ${formatDate(inv.date)}<br>
                     <strong>Type:</strong> Driver Invoice
                 </div>
                 <div style="text-align:right;">

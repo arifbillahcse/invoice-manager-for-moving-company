@@ -53,7 +53,7 @@ function renderPage() {
             <div class="activity-item">
                 <div class="activity-title">${badge}${name}</div>
                 <div class="activity-details">
-                    ${jobs} job(s) &nbsp;|&nbsp; Customers: ${esc(customers)} &nbsp;|&nbsp; Total: <strong>$${(inv.total || 0).toFixed(2)}</strong> &nbsp;|&nbsp; Date: ${inv.date}
+                    ${jobs} job(s) &nbsp;|&nbsp; Customers: ${esc(customers)} &nbsp;|&nbsp; Total: <strong>$${(inv.total || 0).toFixed(2)}</strong> &nbsp;|&nbsp; Date: ${formatDate(inv.date)}
                 </div>
             </div>`;
     }).join('');

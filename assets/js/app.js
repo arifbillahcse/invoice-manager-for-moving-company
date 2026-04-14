@@ -23,6 +23,13 @@ function emptyJob()   { return { jobNumber:'', customerName:'', from:'', to:'', 
 function emptyCoJob() { return { jobNumber:'', driverId:'',    customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
 function emptyDrJob() { return { jobNumber:'', companyId:'',   customerName:'', from:'', to:'', cubicFeet:'', rate:'', balanceDue:'', newBalance:'', remarks:'' }; }
 
+// Format date from YYYY-MM-DD to MM-DD-YYYY
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${month}-${day}-${year}`;
+}
+
 const SAMPLE = {
     companies: [
         { id:1, name:'BH Relocation INC',  address:'11723 Amber Park DR Suite 160', city:'Alpharetta, GA 30009', phone:'(770) 123-4567', dotNumber:'2521000', mcNumber:'875158' },
@@ -186,7 +193,7 @@ function renderDashboard() {
         return `
             <div class="activity-item" onclick="viewInvoice(${inv.id})" style="cursor:pointer;">
                 <div class="activity-title">Invoice #${inv.id} &mdash; ${co?.name || '?'} &nbsp;|&nbsp; Driver: ${dr ? dr.firstName + ' ' + dr.lastName : '?'}</div>
-                <div class="activity-details">${jobs} job(s) &nbsp;|&nbsp; Customers: ${customers} &nbsp;|&nbsp; Total: $${(inv.total || 0).toFixed(2)} &nbsp;|&nbsp; ${inv.date}</div>
+                <div class="activity-details">${jobs} job(s) &nbsp;|&nbsp; Customers: ${customers} &nbsp;|&nbsp; Total: $${(inv.total || 0).toFixed(2)} &nbsp;|&nbsp; ${formatDate(inv.date)}</div>
             </div>`;
     }).join('');
 }
@@ -356,7 +363,7 @@ function renderInvoices() {
                 <td>${n} job${n !== 1 ? 's' : ''}</td>
                 <td>$${(inv.subtotal || 0).toFixed(2)}</td>
                 <td><strong>$${(inv.total || 0).toFixed(2)}</strong></td>
-                <td>${inv.date}</td>
+                <td>${formatDate(inv.date)}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteInvoice(${inv.id})">🗑️ Delete</button>
@@ -466,7 +473,7 @@ function renderCoInvTable() {
                 <td>${n} job${n !== 1 ? 's' : ''}</td>
                 <td>$${(inv.subtotal || 0).toFixed(2)}</td>
                 <td><strong>$${(inv.total || 0).toFixed(2)}</strong></td>
-                <td>${inv.date}</td>
+                <td>${formatDate(inv.date)}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteCoInvoice(${inv.id})">🗑️ Delete</button>
@@ -595,7 +602,7 @@ function viewCoInvoice(id) {
                 <p>US DOT: ${co.dotNumber || '—'} &nbsp;&nbsp; MC/ICC: ${co.mcNumber || '—'} &nbsp;&nbsp; Tel: ${co.phone || '—'}</p>
             </div>
             <div class="inv-meta">
-                <div><strong>Invoice #:</strong> CI-${inv.id}<br><strong>Date:</strong> ${inv.date}<br><strong>Type:</strong> Company Invoice</div>
+                <div><strong>Invoice #:</strong> CI-${inv.id}<br><strong>Date:</strong> ${formatDate(inv.date)}<br><strong>Type:</strong> Company Invoice</div>
                 <div><strong>Total Jobs:</strong> ${jobs.length}<br><strong>Total CF:</strong> ${totalCF}<br><strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}</div>
             </div>
             <div style="overflow-x:auto;">
@@ -651,7 +658,7 @@ function renderDrInvTable() {
                 <td>${n} job${n !== 1 ? 's' : ''}</td>
                 <td>$${(inv.subtotal || 0).toFixed(2)}</td>
                 <td><strong>$${(inv.total || 0).toFixed(2)}</strong></td>
-                <td>${inv.date}</td>
+                <td>${formatDate(inv.date)}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewDrInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-delete" onclick="deleteDrInvoice(${inv.id})">🗑️ Delete</button>
@@ -780,7 +787,7 @@ function viewDrInvoice(id) {
                 <p>Phone: ${dr.phone || '—'} &nbsp;&nbsp; License: ${dr.license || '—'}</p>
             </div>
             <div class="inv-meta">
-                <div><strong>Invoice #:</strong> DI-${inv.id}<br><strong>Date:</strong> ${inv.date}<br><strong>Type:</strong> Driver Invoice</div>
+                <div><strong>Invoice #:</strong> DI-${inv.id}<br><strong>Date:</strong> ${formatDate(inv.date)}<br><strong>Type:</strong> Driver Invoice</div>
                 <div><strong>Total Jobs:</strong> ${jobs.length}<br><strong>Total CF:</strong> ${totalCF}<br><strong>Total Due:</strong> $${(inv.total || 0).toFixed(2)}</div>
             </div>
             <div style="overflow-x:auto;">
@@ -853,7 +860,7 @@ function viewInvoice(id) {
             <div class="inv-meta">
                 <div>
                     <strong>Invoice #:</strong> ${inv.id}<br>
-                    <strong>Date:</strong> ${inv.date}<br>
+                    <strong>Date:</strong> ${formatDate(inv.date)}<br>
                     <strong>Driver:</strong> ${dr.firstName || ''} ${dr.lastName || ''}<br>
                     <strong>Phone:</strong> ${dr.phone || '—'}
                 </div>

@@ -256,7 +256,7 @@ function renderPage() {
                 <td>${n} job${n !== 1 ? 's' : ''}</td>
                 <td>$${(inv.subtotal || 0).toFixed(2)}</td>
                 <td><strong>$${(inv.total || 0).toFixed(2)}</strong></td>
-                <td>${inv.date}</td>
+                <td>${formatDate(inv.date)}</td>
                 <td><div class="action-btns">
                     <button class="btn-xs btn-xs-view"   onclick="viewCoInvoice(${inv.id})">👁️ View</button>
                     <button class="btn-xs btn-xs-pdf"    onclick="downloadCoInvoicePDF(${inv.id})">📥 PDF</button>
@@ -466,7 +466,7 @@ function buildCoInvoiceHtml(id) {
                     <p>Company Statement</p>
                     <p>${co.address || ''}${co.city ? ', ' + co.city : ''}</p>
                     <p>DOT: ${co.dotNumber || '—'} &nbsp;&nbsp; Tel: ${co.phone || '—'}</p>
-                    ${inv.paidDate ? `<p class="inv-paid-date"><strong>Paid Date: ${inv.paidDate}</strong></p>` : ''}
+                    ${inv.paidDate ? `<p class="inv-paid-date"><strong>Paid Date: ${formatDate(inv.paidDate)}</strong></p>` : ''}
                 </div>
             </div>
 
@@ -474,7 +474,7 @@ function buildCoInvoiceHtml(id) {
             <div class="inv-meta">
                 <div>
                     <strong>Invoice #:</strong> CI-${inv.id}<br>
-                    <strong>Date:</strong> ${inv.date}<br>
+                    <strong>Date:</strong> ${formatDate(inv.date)}<br>
                     <strong>Type:</strong> Company Invoice
                 </div>
                 <div style="text-align:right;">

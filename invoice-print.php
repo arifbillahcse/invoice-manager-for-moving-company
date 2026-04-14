@@ -63,6 +63,14 @@ function h(string $s): string {
 function money(float $v): string {
     return '$' . number_format($v, 2);
 }
+function formatDate(string $dateStr): string {
+    if (!$dateStr) return '';
+    $parts = explode('-', $dateStr);
+    if (count($parts) === 3) {
+        return "{$parts[1]}-{$parts[2]}-{$parts[0]}";
+    }
+    return $dateStr;
+}
 
 // ── Compute totals ────────────────────────────
 $totalCF = $totalAmt = $totalBal = $totalNewBal = 0;
@@ -182,7 +190,7 @@ foreach ($items as $r) {
     <div class="inv-meta">
         <div>
             <strong>Invoice #:</strong> <?= h($invoiceNum) ?><br>
-            <strong>Date:</strong> <?= h($inv['date']) ?><br>
+            <strong>Date:</strong> <?= h(formatDate($inv['date'])) ?><br>
             <strong>Type:</strong> <?= $type === 'CI' ? 'Company Invoice' : 'Driver Invoice' ?>
         </div>
         <div>
