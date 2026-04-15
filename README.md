@@ -1,6 +1,6 @@
 # Invoice Manager for Moving Company
 
-A web-based invoice management system built for moving companies. It manages companies, drivers, and two invoice types — company invoices and driver invoices — with PDF export and CSV data export.
+A web-based invoice management system built for moving companies. It manages companies, drivers, and two invoice types — company invoices and driver invoices — with PDF/print export and CSV data export.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@ A web-based invoice management system built for moving companies. It manages com
 | Backend | PHP 8+ |
 | Database | MySQL 5.7+ / MariaDB |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 |
-| PDF Generation | [html2pdf.js](https://ekoopmans.github.io/html2pdf.js/) (client-side) |
+| PDF Generation | Browser print dialog (Save as PDF) via `invoice-print.php` |
 | DB Access | PDO with prepared statements |
 
 No frameworks or build tools are required.
@@ -18,14 +18,14 @@ No frameworks or build tools are required.
 
 ## Features & Functions Overview
 
-The system is organized around a two-invoice workflow: a **Driver Invoice** is created first to record all jobs a driver completed for one or more companies. From there, Company Invoices can be generated automatically — one per company — pre-filled with the relevant jobs and the driver already linked. This eliminates double-entry and keeps both invoice types in sync.
+The system is organized around a two-invoice workflow: a **Driver Invoice** is created first to record all jobs a driver completed for one or more companies. From there, Company Invoices can be generated automatically — one per company — pre-filled with the relevant jobs and the driver already linked. Remarks, pads, and labor cost entered on the driver invoice are automatically copied into the generated company invoice. This eliminates double-entry and keeps both invoice types in sync.
 
 ### Pages & Modules
 
-- **Dashboard** — at-a-glance stats (total companies, drivers, invoices, revenue) with a Recent Invoices feed sorted by date
-- **Companies** — create, edit, and delete company records (name, address, city, phone, DOT #, MC #)
-- **Drivers** — create, edit, and delete driver records (name, phone, license #)
-- **Invoice / Driver** — create and manage invoices billed to a driver; each line item captures job #, company, customer name, from/to location, cubic feet, rate, balance due, new balance, and remarks; a 10% carrier fee is applied automatically to the subtotal
+- **Dashboard** — at-a-glance stats (total companies, drivers, invoices) with a Recent Invoices feed sorted by date
+- **Companies** — create, edit, delete, and search company records (name, address, city, phone, DOT #, MC #)
+- **Drivers** — create, edit, delete, and search driver records (name, phone, license #)
+- **Invoice / Driver** — create and manage invoices billed to a driver; each line item captures job #, company, customer name, customer phone, from/to location, cubic feet, rate, balance due, new balance, and remarks; a 10% carrier fee is applied automatically to the subtotal
 - **Invoice / Company** — create and manage invoices billed to a company; same line-item structure with driver reference instead of company; can be created manually or generated automatically from a Driver Invoice
 
 ### Key Functions
@@ -33,14 +33,31 @@ The system is organized around a two-invoice workflow: a **Driver Invoice** is c
 | Function | Where | Description |
 |----------|-------|-------------|
 | Create / Edit / Delete | All invoice pages | Full CRUD on both Driver and Company Invoices with an inline multi-job form |
-| **Generate Company Invoices** | Invoice / Driver | One click on any Driver Invoice row (or inside its view modal) groups its jobs by company and creates one Company Invoice per unique company, with the driver pre-filled on every line item |
-| Auto-increment Invoice # | System-generated | Invoice numbers (`DI-N` for driver, `CI-N` for company) are assigned automatically by the database — no manual entry required |
+| **Generate Company Invoices** | Invoice / Driver | One click on any Driver Invoice row (or inside its view modal) groups its jobs by company and creates one Company Invoice per unique company, with the driver, remarks, pads, and labor cost pre-filled |
+| Auto-increment Invoice # | System-generated | Invoice numbers (`DI-N` for driver, `CI-N` for company) are assigned automatically by the database |
 | View Invoice | All invoice pages | Opens a formatted invoice detail modal matching the printable layout |
-| Download PDF | All invoice pages | Renders the invoice to a landscape A4 PDF client-side using html2canvas + jsPDF |
+| Print / Save as PDF | All invoice pages | Opens a dedicated print page (`invoice-print.php`) in a new tab; use the browser's "Save as PDF" option to download |
 | CSV Export | Header (any page) | Downloads a ZIP of four CSV files covering all companies, drivers, and both invoice types |
+| **Search / Filter** | All list pages | Live search across invoice tables and entity lists (see details below) |
+| **Collapsible Totals Panel** | Invoice / Driver, Invoice / Company | Expandable panel above the table showing each invoice's total and a grand sum for the current filtered view |
 | Pagination | All invoice tables | Tables paginate at 30 rows per page with prev/next controls |
 | Change Password | Header (any page) | Inline modal to update the admin password; enforces bcrypt hashing |
 | Authentication | All pages | Session-based login guards every page and API endpoint; unauthenticated requests are redirected or receive a `401` JSON response |
+
+### Search & Filter
+
+| Page | Filter Fields |
+|------|---------------|
+| Invoice / Driver | Customer name, Customer phone |
+| Invoice / Company | Customer name, Customer phone |
+| Drivers | Full name, Phone, License # |
+| Companies | Company name, Phone, DOT # |
+
+All filters are applied client-side in real time. The invoice page filters also update the Collapsible Totals Panel to reflect only the currently visible invoices.
+
+### Date Display
+
+All dates are stored in the database in ISO 8601 format (`YYYY-MM-DD`) for correct sorting. They are displayed throughout the UI, CSV exports, and the print template in `MM-DD-YYYY` format.
 
 ---
 
@@ -59,9 +76,9 @@ invoice-manager-for-moving-company/
 ├── assets/
 │   ├── css/style.css         # All styles
 │   └── js/
-│       ├── app.js            # Page-specific logic
+│       ├── app.js            # Page-specific logic (formatDate, filters, totals panel)
 │       ├── data.js           # Shared data layer (API calls, global arrays)
-│       └── utils.js          # Shared utilities (toast, esc, PDF, pagination)
+│       └── utils.js          # Shared utilities (toast, esc, pagination)
 ├── config/
 │   └── db.php                # DB credentials, PDO factory, jsonOut/jsonIn helpers
 ├── includes/
@@ -77,7 +94,8 @@ invoice-manager-for-moving-company/
 ├── companies.php             # Companies management page
 ├── drivers.php               # Drivers management page
 ├── inv-company.php           # Company invoices page
-└── inv-driver.php            # Driver invoices page
+├── inv-driver.php            # Driver invoices page
+└── invoice-print.php         # Standalone print/PDF page (opened in new tab)
 ```
 
 ---
@@ -97,6 +115,8 @@ mysql -u root -p < schema.sql
 ```
 
 This creates the `invoice_manager` database and all required tables. Alternatively, run the contents of `schema.sql` in phpMyAdmin.
+
+> **Existing installations:** The API endpoints automatically run `ALTER TABLE … ADD COLUMN IF NOT EXISTS` migrations on startup, so upgrading an existing database does not require manually re-running the schema.
 
 ### 2. Configure the database connection
 
@@ -137,19 +157,21 @@ drivers
   id, first_name, last_name, phone, license, created_at
 
 company_invoices
-  id, company_id (FK), date, subtotal, carrier_fee, total, created_at
+  id, company_id (FK → companies), date, subtotal, carrier_fee, total,
+  paid, paid_date, invoice_remarks, labor_cost, pads, created_at
 
 company_invoice_items
-  id, invoice_id (FK), sort_order, job_number, driver_id,
-  customer_name, from_location, to_location, cubic_feet, rate,
+  id, invoice_id (FK → company_invoices), sort_order, job_number, driver_id,
+  customer_name, phone, from_location, to_location, cubic_feet, rate,
   balance_due, new_balance, remarks
 
 driver_invoices
-  id, driver_id (FK), date, subtotal, carrier_fee, total, created_at
+  id, driver_id (FK → drivers), date, subtotal, carrier_fee, total,
+  paid, paid_date, invoice_remarks, labor_cost, pads, created_at
 
 driver_invoice_items
-  id, invoice_id (FK), sort_order, job_number, company_id,
-  customer_name, from_location, to_location, cubic_feet, rate,
+  id, invoice_id (FK → driver_invoices), sort_order, job_number, company_id,
+  customer_name, phone, from_location, to_location, cubic_feet, rate,
   balance_due, new_balance, remarks
 
 users
@@ -168,8 +190,10 @@ For both invoice types the totals are calculated as follows:
 Job total   = cubic_feet × rate
 Subtotal    = sum of all job totals
 Carrier fee = subtotal × 10%
-Total due   = subtotal + carrier fee
+Total due   = subtotal + carrier_fee + labor_cost + pads + paid
 ```
+
+All numeric fields (CF, Rate, Balance Due, New Balance, Paid, Labor Cost, Pads) accept negative values and decimals.
 
 ---
 
@@ -221,6 +245,6 @@ Make sure your local MySQL instance is running and `config/db.php` points to it.
 - All database queries use PDO prepared statements — no raw string interpolation.
 - Passwords are hashed with `bcrypt` via `password_hash()`.
 - All API routes enforce session authentication and return JSON errors for unauthorized access.
-- HTML output uses an `esc()` helper to prevent XSS.
+- HTML output uses `htmlspecialchars()` / `esc()` helpers to prevent XSS.
 - `create-admin.php` blocks access once any admin exists; delete it after first use.
 - `api/clear.php` permanently deletes all data — restrict or remove it in production if not needed.
