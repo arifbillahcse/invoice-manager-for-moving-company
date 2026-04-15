@@ -2,6 +2,14 @@
 // SHARED UTILITIES
 // ═══════════════════════════════════════════
 
+// Format date from YYYY-MM-DD to MM-DD-YYYY
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = String(dateStr).split('-');
+    if (parts.length === 3) return `${parts[1]}-${parts[2]}-${parts[0]}`;
+    return dateStr;
+}
+
 function toast(msg, type) {
     const el = document.getElementById('toast');
     el.textContent = msg;
