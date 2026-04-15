@@ -1,0 +1,14 @@
+DirectoryIndex index.php
+Options -Indexes
+
+# Deny direct access to sensitive directories and files
+<FilesMatch "\.(sql|md|json|lock|gitignore)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Redirect bare domain root to index.php
+    RewriteRule ^$ index.php [L]
+</IfModule>
