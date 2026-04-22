@@ -23,7 +23,7 @@ $navItems = [
 
     <div class="header">
         <div class="header-brand">
-            <img src="assets/apvl-logo.png" alt="Logo" class="header-logo">
+            <img src="assets/mv.png" alt="Logo" class="header-logo">
         </div>
         <div class="header-actions">
             <a class="btn btn-success" href="api/export.php">📥 Export CSV</a>
