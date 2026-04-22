@@ -414,3 +414,8 @@ tr:hover { background: var(--bg3); }
     .inv-view { padding: 0 !important; }
     @page { margin: 1.5cm; size: A4 landscape; }
 }
+.header .header-logo {
+    border-radius: 10px;
+    background: #fff;
+    width: 59px;
+}
