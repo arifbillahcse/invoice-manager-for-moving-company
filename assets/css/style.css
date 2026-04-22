@@ -46,7 +46,7 @@ body {
 .header h1 { font-size: 30px; color: var(--text); }
 .header p  { color: var(--text2); font-size: 14px; margin-top: 4px; }
 .header-brand { display: flex; align-items: center; }
-.header-logo  { height: 56px; width: auto; display: block; object-fit: contain; }
+.header-logo  { border-radius: 12px; background: #fff; height: 56px; width: auto; display: block; object-fit: contain; }
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* ── Nav ── */
@@ -414,8 +414,4 @@ tr:hover { background: var(--bg3); }
     .inv-view { padding: 0 !important; }
     @page { margin: 1.5cm; size: A4 landscape; }
 }
-.header .header-logo {
-    border-radius: 10px;
-    background: #fff;
-    width: 59px;
-}
+
