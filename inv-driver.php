@@ -360,7 +360,7 @@ function updateDrSummary() {
     const paid  = parseFloat(document.getElementById('drPaid').value) || 0;
     document.getElementById('drSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('drCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('drTotal').textContent      = '$' + (sub - fee - labor - pads).toFixed(2);
+    document.getElementById('drTotal').textContent      = '$' + (sub - fee - labor - pads + paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -380,7 +380,7 @@ async function saveDrInvoice(e) {
     const paidDate       = document.getElementById('drPaidDate').value || '';
     const invoiceRemarks = document.getElementById('drInvoiceRemarks').value;
     const items          = JSON.parse(JSON.stringify(drJobRows));
-    const payload        = { driverId: did, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee - labor - pads };
+    const payload        = { driverId: did, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee - labor - pads + paid };
 
     try {
         let drInvId;
@@ -448,7 +448,7 @@ async function autoSyncCoInvoices(drInvId, inv) {
             laborCost:       inv.laborCost       || 0,
             pads:            inv.pads            || 0,
             invoiceRemarks:  inv.invoiceRemarks  || '',
-            total:           sub - fee - (inv.laborCost || 0) - (inv.pads || 0),
+            total:           sub - fee - (inv.laborCost || 0) - (inv.pads || 0) + (inv.paid || 0),
         };
         try {
             const res = await api('inv-company', 'POST', payload);

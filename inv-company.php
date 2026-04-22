@@ -358,7 +358,7 @@ function updateCoSummary() {
     const paid  = parseFloat(document.getElementById('coPaid').value) || 0;
     document.getElementById('coSubtotal').textContent   = '$' + sub.toFixed(2);
     document.getElementById('coCarrierFee').textContent = '$' + fee.toFixed(2);
-    document.getElementById('coTotal').textContent      = '$' + (sub - fee - labor - pads).toFixed(2);
+    document.getElementById('coTotal').textContent      = '$' + (sub - fee - labor - pads + paid).toFixed(2);
 }
 
 // ── Save (create or update) ──────────────────
@@ -378,7 +378,7 @@ async function saveCoInvoice(e) {
     const paidDate      = document.getElementById('coPaidDate').value || '';
     const invoiceRemarks = document.getElementById('coInvoiceRemarks').value;
     const items          = JSON.parse(JSON.stringify(coJobRows));
-    const payload        = { companyId: cid, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee - labor - pads };
+    const payload        = { companyId: cid, date, paidDate, invoiceRemarks, lineItems: items, subtotal: sub, carrierFee: fee, laborCost: labor, pads, paid, total: sub - fee - labor - pads + paid };
 
     try {
         if (editingCoInvId) {
