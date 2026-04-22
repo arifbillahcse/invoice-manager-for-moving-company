@@ -22,9 +22,8 @@ $navItems = [
 <div class="app-wrapper">
 
     <div class="header">
-        <div>
-            <h1>📋 Invoice Management System</h1>
-            <p>Manage companies, drivers, and generate invoices</p>
+        <div class="header-brand">
+            <img src="assets/apvl-logo.png" alt="Logo" class="header-logo">
         </div>
         <div class="header-actions">
             <a class="btn btn-success" href="api/export.php">📥 Export CSV</a>
