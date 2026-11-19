@@ -23,8 +23,8 @@ $navItems = [
 
     <!-- Top Menu (Driver Tracking & Job Tracking) -->
     <div class="top-menu">
-        <a class="top-menu-item" href="driver-tracking.php">🗺️ Driver Tracking</a>
-        <a class="top-menu-item" href="job-tracking.php">📍 Job Tracking</a>
+        <a class="top-menu-item" href="https://app.bhrelocationinc.com/driver-tracking.php">🗺️ Driver Tracking</a>
+        <a class="top-menu-item" href="https://app.americanprovanline.com/">📍 Job Tracking</a>
     </div>
 
     <div class="header">
