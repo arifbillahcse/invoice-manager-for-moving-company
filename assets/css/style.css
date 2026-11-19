@@ -30,6 +30,40 @@ body {
 
 .app-wrapper { max-width: 1300px; margin: 0 auto; }
 
+/* ── Top Menu ── */
+.top-menu {
+    background: #ffffff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.top-menu-item {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all .25s;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.top-menu-item:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+}
+
 /* ── Header ── */
 .header {
     background: linear-gradient(to right, var(--bg2), var(--bg), var(--bg2));

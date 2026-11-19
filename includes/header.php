@@ -21,6 +21,12 @@ $navItems = [
 <body>
 <div class="app-wrapper">
 
+    <!-- Top Menu (Driver Tracking & Job Tracking) -->
+    <div class="top-menu">
+        <a class="top-menu-item" href="driver-tracking.php">🗺️ Driver Tracking</a>
+        <a class="top-menu-item" href="job-tracking.php">📍 Job Tracking</a>
+    </div>
+
     <div class="header">
         <div class="header-brand">
             <img src="assets/mv.png" alt="Logo" class="header-logo">
